@@ -34,6 +34,11 @@ export const userApi = {
 };
 
 
+export const statsApi = {
+  overview: () => api.get("/stats"),
+  industries: () => api.get("/stats/industries"),
+};
+
 export const jobsApi = {
   // public
   plans: () => api.get("/jobs/plans"),
@@ -47,7 +52,8 @@ export const jobsApi = {
   confirm: (id, reference) => api.post(`/jobs/${id}/confirm`, { reference }),
   applicants: (id) => api.get(`/jobs/${id}/applicants`),
   analytics: (id) => api.get(`/jobs/${id}/analytics`),
-  setStatus: (appId, status, reason = "") => api.patch(`/jobs/applications/${appId}/status`, { status, reason }),
+  setStatus: (appId, status, reason = "") => api.put(`/jobs/applications/${appId}/status`, { status, reason }),
+  applicantProfile: (appId) => api.get(`/jobs/applications/${appId}/profile`),
   // job seeker
   browse: (params) => api.get("/jobs/browse", { params }),
   details: (id) => api.get(`/jobs/${id}/details`),
@@ -66,6 +72,57 @@ follow: (id) => api.post(`/jobs/${id}/follow`),
     approve: (id) => api.post(`/jobs/admin/${id}/approve`),
     reject: (id, reason) => api.post(`/jobs/admin/${id}/reject`, { reason }),
   },
+};
+
+
+export const searchApi = {
+  suggest: (params, signal) => api.get("/search/suggest", { params, signal }),
+  jobs: (params) => api.get("/search/jobs", { params }),
+  candidates: (params) => api.get("/search/candidates", { params }),
+};
+
+export const adsApi = {
+  // public
+  active: (params) => api.get("/ads/active", { params }), // live ads for a placement
+  click: (id) => api.post(`/ads/${id}/click`),
+  packages: () => api.get("/ads/packages"),
+  // any logged-in role
+  mine: () => api.get("/ads/mine"),
+  create: (data) => api.post("/ads", data), // data carries the Cloudinary URL (mediaUrl)
+  update: (id, data) => api.put(`/ads/${id}`, data),
+  remove: (id) => api.delete(`/ads/${id}`),
+  pay: (id) => api.post(`/ads/${id}/payment`),
+  confirm: (id, reference) => api.post(`/ads/${id}/confirm`, { reference }),
+  submit: (id) => api.post(`/ads/${id}/submit`),
+  // admin and super admin
+  admin: {
+    list: (params) => api.get("/ads/admin/list", { params }),
+    approve: (id) => api.post(`/ads/admin/${id}/approve`),
+    reject: (id, reason) => api.post(`/ads/admin/${id}/reject`, { reason }),
+    setState: (id, action) => api.patch(`/ads/admin/${id}/state`, { action }),
+  },
+};
+
+
+const section = (path) => ({
+  list: () => api.get(`/users/${path}`),
+  create: (data) => api.post(`/users/${path}`, data),
+  update: (id, data) => api.put(`/users/${path}/${id}`, data),
+  remove: (id) => api.delete(`/users/${path}/${id}`),
+});
+
+export const sectionsApi = {
+  education: section("education"),
+  work: section("work-experience"),
+  certificates: section("certificates"),
+  guarantors: section("guarantors"),
+};
+
+export const cvApi = {
+  get: () => api.get("/users/cv"),
+  save: (data) => api.put("/users/cv", data),
+  attach: (data) => api.post("/users/cv/files", data),
+  detach: (format) => api.delete(`/users/cv/files/${format}`),
 };
 
 export const overviewApi = {
@@ -98,6 +155,34 @@ export const benefitApi = {
 };
 
 export default api;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

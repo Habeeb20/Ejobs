@@ -118,7 +118,16 @@ export default function PublicJobDetails() {
         } else if (!me) {
             apply = <Spinner label="Loading your profile…" />;
         } else if (me.role !== "jobseeker") {
-            apply = <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Only job seeker accounts can apply for jobs.</p>;
+            apply = <>
+             <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Only job seeker accounts can apply for jobs.</p>
+                <a href="/login" target="_blank" rel="noopener noreferrer"
+                                        className="mt-4 inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-600">
+                                        <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-xs font-extrabold text-orange-600">L</span>
+                                        Login to apply
+                                    </a>
+
+            </>
+           
         } else {
             apply = <ApplyForm job={job} user={me} onApplied={() => setJob((j) => ({ ...j, applied: true }))} />;
         }

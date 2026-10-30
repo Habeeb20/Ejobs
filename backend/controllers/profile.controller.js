@@ -1,5 +1,10 @@
 import User, { ROLES } from "../models/User.js";
-
+import Job from "../models/Job.js";
+import Application from "../models/Application.js";
+import { PLANS } from "../config/plans.js";
+import mongoose from "mongoose";
+import { Education, Work, Certificate } from "../models/ProfileSection.js";
+import { blank } from "./proflleSection.controller.js";
 const fail = (res, status, message, extra = {}) =>
   res.status(status).json({ success: false, message, ...extra });
 
@@ -41,7 +46,11 @@ const SECTIONS = {
     personal: ["avatar", "firstName", "lastName", "dateOfBirth", "gender", "phoneNumber"],
     address: ADDRESS,
     career: ["educationLevel", "job", "jobMode", "minimumSalary", "jobChoice", "resume"],
+     education: ["education"],
+  work: ["workExperience"],
+  certificates: ["certificates"],
     documents: ["votersCard", "residentialCard", "scanningEvidence", "tenancyAgreement"],
+    guarantors: ["guarantors"],
     nextOfKin: ["nextOfKin", "nextOfKinRelationship", "nextOfKinNumber", "nextOfKinAddress"],
     bank: BANK,
   },
@@ -51,6 +60,7 @@ const SECTIONS = {
     address: ADDRESS,
     documents: ["certificate"],
   },
+
   [ROLES.AGENT]: { ...STAFF_SECTIONS, bank: BANK },
   [ROLES.ADMIN]: STAFF_SECTIONS,
   [ROLES.SUPERADMIN]: STAFF_SECTIONS,
@@ -425,3 +435,30 @@ export const updateProfile = async (req, res) => {
     fail(res, 500, "Could not update your profile. Please try again.");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,7 @@
 
 
 import { Router } from "express";
+
 import { protect } from "../middleware/auth.js"; // your existing middleware that sets req.user
 import { ROLES } from "../models/User.js";
 import {
@@ -12,6 +13,7 @@ import {
   getAllJobs,
 } from "../controllers/job.controller.js";
 import { optionalAuth } from "../config/others.js";
+import { getApplicantProfile } from "../controllers/proflleSection.controller.js";
 
 const only = (...roles) => (req, res, next) =>
   roles.includes(req.user?.role)
@@ -31,6 +33,8 @@ router.get("/all", optionalAuth, getAllJobs);
 
 router.use(protect);
 
+
+router.get("/applications/:appId/profile",  getApplicantProfile);
 // Super admin approval queue (declared before /:id routes)
 router.get("/admin/pending", only(ROLES.SUPERADMIN), listPending);
 router.post("/admin/:id/approve", only(ROLES.SUPERADMIN), approveJob);

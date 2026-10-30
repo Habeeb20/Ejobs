@@ -8,6 +8,9 @@ import AdminLogin from "./pages/superAdmin/AdminLogin";
 import JobPage from "./pages/home/JobPage";
 
 import PublicJobDetails from "./pages/home/PublicJobdetails";
+import Landingpage from "./pages/home/Landingpage";
+import InterviewArticlePage from "./components/home/InterviewArticlePage";
+import InterviewTipsHub from "./components/home/InterviewTipsHub";
 
 export default function App() {
   return (
@@ -26,7 +29,7 @@ export default function App() {
 />
      <Routes>
 
-      <Route path="/" element={<Navigate to="/onboarding" replace />} />
+      <Route path="/" element={<Landingpage />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/signup" element={<Onboarding />} />
       <Route path="/register" element={<Onboarding />} />
@@ -34,6 +37,8 @@ export default function App() {
       <Route path="/jobs" element={< JobPage/>} />
       <Route path="/jobs/:id" element={< PublicJobDetails/>} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/interview-tips/:slug" element={<InterviewArticlePage />} />
+      <Route path="/interview-tips" element={<InterviewTipsHub />} />
 
 
       <Route path="/agent" element={<Dashboard />} />

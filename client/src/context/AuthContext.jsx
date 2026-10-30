@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
-export const TOKEN_KEY = "jp_token";
+export const TOKEN_KEY = "token";
 
 // Where each role lands after logging in
 export const DASHBOARD_PATHS = {
@@ -49,7 +49,7 @@ export function AuthProvider({ children }) {
       return null;
     }
     try {
-      const { data } = await api.get("/auth/me");
+      const { data } = await api.get("users/me");
       setUser(data.user);
       return data.user;
     } catch (err) {

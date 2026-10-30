@@ -650,10 +650,11 @@ export const getApplicants = async (req, res) => {
     const query = Application.find({ job: job._id })
       .select(plan.matchScore ? "" : "-matchScore -matchBreakdown")
       .sort(plan.matchScore ? { matchScore: -1, createdAt: 1 } : { createdAt: 1 })
-      .populate("applicant", "firstName lastName email phoneNumber avatar state localGovernment educationLevel");
+      .populate("applicant");
     if (Number.isFinite(plan.maxApplicants)) query.limit(plan.maxApplicants);
 
     const [applicants, total] = await Promise.all([query.lean(), Application.countDocuments({ job: job._id })]);
+    
     res.json({
       success: true,
       job: { _id: job._id, jobTitle: job.jobTitle, jobType: job.jobType, status: present(job).status },

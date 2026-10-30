@@ -17,7 +17,10 @@ import User from "./models/User.js";
 import adminRoutes from "./routes/admin.routes.js"
 import benefitRoutes from "./routes/benefit.routes.js"
 import overviewRoutes from "./routes/overview.routes.js"
+import adsRoutes from "./routes/ads.routes.js"
 import { startAttendanceWatcher } from "./utils/attendanceWatcher.js";
+import searchRoutes from "./routes/search.routes.js"
+import statsRoutes from "./routes/stats.routes.js"
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -54,7 +57,9 @@ app.use("/api/users", userRouter)
 app.use("/api/jobs", jobRoutes)
 app.use("/api/benefits", benefitRoutes);
 app.use("/api/overview", overviewRoutes);
-
+app.use("/api/ads", adsRoutes)
+app.use("/api/search", searchRoutes)
+app.use("/api/stats", statsRoutes)
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',

@@ -197,6 +197,21 @@ welcomeBonusGiven: { type: Boolean, default: false },
     certificationDate: { type: Date, default: null },
     guarantorVerified: { type: Boolean, default: false },
     guarantorDate: { type: Date, default: null },
+    cv: {
+  summary: { type: String, default: "", maxlength: 1200 },
+  skills: { type: [String], default: [] },
+  languages: { type: [String], default: [] },
+  interests: { type: [String], default: [] },
+  template: { type: String, enum: ["modern", "classic"], default: "modern" },
+  accent: { type: String, default: "#c2410c" },
+  showPhoto: { type: Boolean, default: true },
+  showAddress: { type: Boolean, default: true },
+  showPersonal: { type: Boolean, default: true },
+  hidden: { type: [String], default: [] }, // sections the user hides on the CV
+  pdfUrl: { type: String, default: "" },   // Cloudinary strings
+  wordUrl: { type: String, default: "" },
+  filesUpdatedAt: Date,
+},
 
     // ============ EMPLOYER ONLY ============
     companyName: { type: String, required: isEmployer }, // unique index below
