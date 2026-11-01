@@ -252,6 +252,7 @@ const LINKS = [
   { to: "/companies", label: "Companies" },
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
+  { to: "/statistics", label: "Statistics" },
 ];
 
 export default function Navbar() {

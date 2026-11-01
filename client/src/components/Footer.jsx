@@ -4,7 +4,7 @@
 // e.g. /dashboard/jobs). Swap the hrefs for <Link to="..."> if you prefer client-side navigation.
 import { Link, useLocation } from "react-router-dom";
 import im from "../assets/eJobs@4x.png"
-const HIDDEN_ON = ["/dashboard", "/login", "/signup", "/register"];
+const HIDDEN_ON = ["/dashboard", "/jobseeker", "/employer", "/login", "/signup", "/register"];
 
 const LINKS = [
   { label: "About us", href: "/about" },

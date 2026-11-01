@@ -5,6 +5,37 @@ import Application from "../models/Application.js";    // change to your applica
 let cache = null; // small in-memory cache so a busy landing page doesn't hit the database every time
 const TTL = 60 * 1000;
 
+// export const overview = async (req, res) => {
+//   try {
+//     if (cache && Date.now() - cache.at < TTL) {
+//       res.set("Cache-Control", "public, max-age=60");
+//       return res.json({ success: true, stats: cache.stats });
+//     }
+
+//     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+//    const [totalUsers, jobseekers, employers, applications, employed, jobsLast24h, totalJobs] = await Promise.all([
+//   User.countDocuments({}),
+//   User.countDocuments({ role: ROLES.JOBSEEKER }),
+//   User.countDocuments({ role: ROLES.EMPLOYER }),
+//   Application.countDocuments({}),
+//   Application.countDocuments({ status: "Offer" }),
+//   Job.countDocuments({ createdAt: { $gte: since }, status: { $ne: "Draft" } }),
+//   Job.countDocuments({ status: { $ne: "Draft" } }),
+// ]);
+
+// const stats = { totalUsers, jobseekers, employers, applications, employed, jobsLast24h, totalJobs };
+//     cache = { at: Date.now(), stats };
+//     res.set("Cache-Control", "public, max-age=60");
+//     res.json({ success: true, stats });
+//   } catch (err) {
+//     console.error("stats overview:", err);
+//     res.status(500).json({ success: false, message: "Could not load statistics" });
+//   }
+// };
+
+
+// Replace your existing `overview` controller with this one.
+// It uses the `cache`, `TTL`, `User`, `Application`, `Job` and `ROLES` already defined in your file.
 export const overview = async (req, res) => {
   try {
     if (cache && Date.now() - cache.at < TTL) {
@@ -13,16 +44,33 @@ export const overview = async (req, res) => {
     }
 
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [totalUsers, jobseekers, employers, applications, employed, jobsLast24h] = await Promise.all([
-      User.countDocuments({}),
-      User.countDocuments({ role: ROLES.JOBSEEKER }),
-      User.countDocuments({ role: ROLES.EMPLOYER }),
-      Application.countDocuments({}),
-      Application.countDocuments({ status: "Offer" }),
-      Job.countDocuments({ createdAt: { $gte: since }, status: { $ne: "Draft" } }),
-    ]);
 
-    const stats = { totalUsers, jobseekers, employers, applications, employed, jobsLast24h };
+    const [totalUsers, jobseekers, jobChangers, employers, applications, employed, totalJobs, jobsLast24h] =
+      await Promise.all([
+        User.countDocuments({}),
+        User.countDocuments({ role: ROLES.JOBSEEKER }),
+        // jobDecision is an array of strings: this matches users whose list contains "jobchanger"
+        // (any letter case). Job seekers who chose professional / atisan / unemployed are not counted.
+        User.countDocuments({ role: ROLES.JOBSEEKER, jobDecision: { $regex: /^jobchanger$/i } }),
+        User.countDocuments({ role: ROLES.EMPLOYER }),
+        Application.countDocuments({}),
+        Application.countDocuments({ status: "Offer" }),
+        // keep this filter the same as the one your job search uses
+        Job.countDocuments({ status: { $ne: "Draft" } }),
+        Job.countDocuments({ createdAt: { $gte: since }, status: { $ne: "Draft" } }),
+      ]);
+
+    const stats = {
+      totalUsers,
+      jobseekers,
+      jobChangers,
+      employers,
+      applications,
+      employed,
+      totalJobs,
+      jobsLast24h,
+    };
+
     cache = { at: Date.now(), stats };
     res.set("Cache-Control", "public, max-age=60");
     res.json({ success: true, stats });
@@ -31,7 +79,6 @@ export const overview = async (req, res) => {
     res.status(500).json({ success: false, message: "Could not load statistics" });
   }
 };
-
 
 
 let industryCache = null;

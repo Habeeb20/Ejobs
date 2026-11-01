@@ -39,6 +39,10 @@ export const statsApi = {
   industries: () => api.get("/stats/industries"),
 };
 
+export const analyticsApi = {
+  full: () => api.get("/analytics/full"),
+};
+
 export const jobsApi = {
   // public
   plans: () => api.get("/jobs/plans"),

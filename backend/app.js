@@ -21,6 +21,7 @@ import adsRoutes from "./routes/ads.routes.js"
 import { startAttendanceWatcher } from "./utils/attendanceWatcher.js";
 import searchRoutes from "./routes/search.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
+import analyticsRoutes from "./routes/analytics.routes.js"
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -60,6 +61,7 @@ app.use("/api/overview", overviewRoutes);
 app.use("/api/ads", adsRoutes)
 app.use("/api/search", searchRoutes)
 app.use("/api/stats", statsRoutes)
+app.use("/api/analytics", analyticsRoutes)
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',

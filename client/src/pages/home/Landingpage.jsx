@@ -25,6 +25,9 @@ import InterviewTipsHub from '../../components/home/InterviewTipsHub'
 import RegisterBanner from '../../components/home/RegisterBanner'
 import IndustryGrid from '../../components/home/IndustryGrid'
 import JobChanger from '../../components/home/JobChanger'
+import { HowItWorks } from '../../components/home/HowItWorks'
+import QuestionAnswer from '../../components/home/Q&A'
+import EJobFamilyBanner from '../../components/home/Ejobfamily'
 
 const Landingpage = () => {
   return (
@@ -44,6 +47,9 @@ const Landingpage = () => {
       <RegisterBanner />
       <IndustryGrid/>
       <JobChanger />
+      <HowItWorks />
+      <EJobFamilyBanner />
+      <QuestionAnswer />
     </div>
   )
 }

@@ -129,7 +129,10 @@ welcomeBonusGiven: { type: Boolean, default: false },
     maritalStatus: { type: String, default: "single" },
     educationLevel: { type: String, default: "none" },
     jobMode: { type: String },
-    jobDecision: { type: String, default: "jobSeeker" },
+jobDecision: {
+  type: [{ type: String, enum: ["jobchanger", "professional", "atisan", "unemployed"] }],
+  default: ["jobchanger"], // pick the default you actually want
+},
     jobDecisionSalary: { type: String },
     job: { type: String },
     TIN: { type: String },

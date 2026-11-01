@@ -11,6 +11,7 @@ import PublicJobDetails from "./pages/home/PublicJobdetails";
 import Landingpage from "./pages/home/Landingpage";
 import InterviewArticlePage from "./components/home/InterviewArticlePage";
 import InterviewTipsHub from "./components/home/InterviewTipsHub";
+import StatisticsPage from "./components/home/StatisticsPage";
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/" element={<Landingpage />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/signup" element={<Onboarding />} />
+    
       <Route path="/register" element={<Onboarding />} />
       <Route path="/login" element={<Login />} />
       <Route path="/jobs" element={< JobPage/>} />
@@ -39,7 +41,7 @@ export default function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/interview-tips/:slug" element={<InterviewArticlePage />} />
       <Route path="/interview-tips" element={<InterviewTipsHub />} />
-
+  <Route path="/statistics" element={<StatisticsPage />} />
 
       <Route path="/agent" element={<Dashboard />} />
       <Route path="/jobseeker" element={<Dashboard />} />
