@@ -32,6 +32,7 @@ import CvTab from "../profile/tabs/cv/cvTab";
 import MyAds from "../ads/Myads";
 import AdsReview from "../ads/AdsReview";
 import { useNavigate } from "react-router-dom";
+import Blacklist from "../admin/Blacklist";
 /* ------------------------------------------------------------------
    1. PAGES. The key is the value used in the URL: /dashboard?tab=<key>
 ------------------------------------------------------------------- */
@@ -61,6 +62,7 @@ const PAGES = {
     approvals: JobApprovals, // super admin: approve or reject jobs
     myAds: MyAds, // job seeker, employer, agent: pay to be featured
     adsReview: AdsReview,
+    blacklist: Blacklist, // super admin: view and manage blacklisted users
     allJobs: page("All job listings"),
     candidates: page("Candidates"),
     company: Profile,
@@ -112,6 +114,7 @@ export const MENU_BY_ROLE = {
         item("roles", "Roles & permissions", ShieldCheck),
         item("analytics", "Analytics", BarChart3),
         item("settings", "System settings", Settings),
+        item("blacklist", "Blacklist", ShieldCheck),
     ],
     admin: [
         item("overview", "Overview", LayoutDashboard),

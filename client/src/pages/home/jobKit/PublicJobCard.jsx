@@ -102,12 +102,22 @@ export default function PublicJobCard({ job, origin }) {
       </div>
 
       <div className="mt-5 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
+        
+     
         <Row label="">
           <b className="text-slate-800">{job.state}</b> (LGA: {job.localGovernment}, City: {job.city})
         </Row>
+      
         <Row label="Salary:" right><b className="text-slate-800">{formatSalary(job.currency, job.salary)}</b></Row>
         <Row label="Job Type:"><b className="text-slate-800">{job.workType}</b></Row>
         <Row label="Industry:" right><b className="text-slate-800">{job.industry}</b></Row>
+        <Row right>{job.isBoosted && (
+  <span className="inline-block w-fit rounded-md bg-amber-600 px-2.5 py-1 text-sm font-semibold text-white">
+    Boosted: {job.boost?.plan || "—"}
+  </span>
+)}</Row>
+
+
       </div>
 
       {drive !== null && <div className="mt-4"><DriveChip drive={drive} /></div>}

@@ -69,6 +69,7 @@ const userSchema = new Schema(
     country: { type: String, required: isEmployer },
 welcomeBonusGiven: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: true },
+    isBlocked: { type: Boolean, default: true },
     isBlacklisted: { type: Boolean, default: false },
     lastLogin: { type: Date, default: Date.now },
 
@@ -130,7 +131,7 @@ welcomeBonusGiven: { type: Boolean, default: false },
     educationLevel: { type: String, default: "none" },
     jobMode: { type: String },
 jobDecision: {
-  type: [{ type: String, enum: ["jobchanger", "professional", "atisan", "unemployed"] }],
+  type: [{ type: String,  }],
   default: ["jobchanger"], // pick the default you actually want
 },
     jobDecisionSalary: { type: String },
@@ -292,6 +293,12 @@ jobDecision: {
       },
       approved: { type: Boolean, default: false, index: true },
       lastAttemptAt: Date,
+      isBlacklisted: { type: Boolean, default: false, index: true },
+blacklistedAt: { type: Date, default: null },
+blacklistedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+blacklistReason: { type: String, default: "", maxlength: 1000 },
+blacklistCategory: { type: String, default: "" },
+      
     },
   },
   { timestamps: true }

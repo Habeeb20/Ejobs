@@ -24,7 +24,7 @@ router.use(protect);
 router.get("/admin/list", staff, adminList);
 router.post("/admin/:id/approve", staff, approveAd);
 router.post("/admin/:id/reject", staff, rejectAd);
-router.patch("/admin/:id/state", staff, setAdState);
+router.put("/admin/:id/state", staff, setAdState);
 
 // Any logged-in role (admins publish free, everyone else pays then waits for review)
 router.get("/mine", myAds);

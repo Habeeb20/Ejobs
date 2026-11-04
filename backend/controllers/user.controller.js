@@ -5,7 +5,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User, { ROLES } from "../models/User.js";
 import { sendEmail, otpEmailHtml } from "../utils/sendEmail.js";
-
+import {blacklistedResponse} from "../utils/blacklist.js"
 const SIGNUP_ROLES = [ROLES.JOBSEEKER, ROLES.EMPLOYER, ROLES.AGENT];
 const OTP_MINUTES = 10;
 const RESEND_SECONDS = 60;
@@ -671,6 +671,8 @@ export const login = async (req, res) => {
     }
     // Burn the same time as a real check when nothing matched the identifier
     if (!candidates.length) await bcrypt.compare(password, DUMMY_HASH);
+
+    if(user.isBlacklisted) return res.status(403).json(blacklistedResponse(user));
 
     if (!user) return fail(res, 401, INVALID_LOGIN);
 

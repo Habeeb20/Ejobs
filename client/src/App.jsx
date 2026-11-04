@@ -12,6 +12,9 @@ import Landingpage from "./pages/home/Landingpage";
 import InterviewArticlePage from "./components/home/InterviewArticlePage";
 import InterviewTipsHub from "./components/home/InterviewTipsHub";
 import StatisticsPage from "./components/home/StatisticsPage";
+import PublicBlacklist from "./pages/home/PublicBlacklist";
+import EmployerList from "./pages/employer/Employerlist";
+import EmployerDetails from "./pages/employer/EmployersDetails";
 
 export default function App() {
   return (
@@ -39,13 +42,17 @@ export default function App() {
       <Route path="/jobs" element={< JobPage/>} />
       <Route path="/jobs/:id" element={< PublicJobDetails/>} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/employers/:id" element={<EmployerDetails />} />
+      <Route path="/admin" element={<Dashboard />} />
       <Route path="/interview-tips/:slug" element={<InterviewArticlePage />} />
       <Route path="/interview-tips" element={<InterviewTipsHub />} />
   <Route path="/statistics" element={<StatisticsPage />} />
+  <Route path="/companies" element={<EmployerList />} />
 
       <Route path="/agent" element={<Dashboard />} />
       <Route path="/jobseeker" element={<Dashboard />} />
       <Route path="/employer" element={<Dashboard />} />
+      <Route path="/blacklist" element={<PublicBlacklist />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
 

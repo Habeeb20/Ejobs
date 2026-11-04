@@ -7,13 +7,14 @@ export const EDUCATION_LEVELS = [
 export const COMPANY_SIZES = ["1-10 employees", "11-50 employees", "51-200 employees", "201-500 employees", "500+ employees"];
 
 export const JOBS = [
-  "Accountant", "Administrative Assistant", "Barber", "Barista", "Bricklayer", "Business Developer",
-  "Caregiver", "Carpenter", "Cashier", "Chef / Cook", "Cleaner", "Customer Service Representative",
-  "Data Entry Clerk", "Delivery Rider", "Electrician", "Event Planner", "Fashion Designer / Tailor",
-  "Graphic Designer", "Hair Stylist", "Hotel Receptionist", "House Help", "HR Officer",
-  "Laundry Attendant", "Mechanic", "Nanny", "Nurse", "Painter", "Personal Driver", "Photographer",
-  "Plumber", "Sales Representative", "Security Guard", "Shop Attendant", "Software Developer",
-  "Teacher / Tutor", "Warehouse Staff", "Waiter / Waitress", "Welder",
+  "Sales", "Marketing", "Admin", "Customer Service", "Accounting", "Engineering", "IT", "Teaching", "Driver",
+  "Security Guard", "Cleaning", "Cooking", "Delivery", "Healthcare", "Construction", "Hospitality",
+  "Banking", "Bricklaying", "Carpentry", "Cashier", "Chef", "Content Writing", "Cybersecurity",
+  "Data & Analytics", "Electrician", "Farming", "Graphic Design", "Hair & Beauty", "Housekeeping",
+  "Human Resources", "Journalism", "Legal", "Mechanic", "Nanny & Childcare", "Nursing", "Operations",
+  "Pharmacy", "Photography & Video", "Plumbing", "Procurement", "Product Management", "Project Management",
+  "Quality Control", "Receptionist", "Research", "Retail Assistant", "Social Media", "Software Development",
+  "Supply Chain", "Tailoring", "UI/UX Design", "Warehouse", "Welding",
 ];
 
 export const ROLE_OPTIONS = [

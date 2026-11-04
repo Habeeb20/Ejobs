@@ -1,6 +1,12 @@
 
 
+
+
+
+
+
 import mongoose, { Schema } from "mongoose";
+import { rankFields } from "../config/boost.js";
 
 const targetingSchema = new Schema(
   { states: [String], educationLevels: [String], jobCategories: [String] },
@@ -91,12 +97,28 @@ const jobSchema = new Schema(
     shares: [{ _id: false, user: { type: Schema.Types.ObjectId, ref: "User" }, channel: String, at: Date }],
     followCount: { type: Number, default: 0 },
     featuredJob: { type: Boolean, default: false }, // true for Premium once approved
+
+    // NEW: paid boost (Spotlight or Reach)
+    boost: {
+      plan: { type: String, enum: ["Spotlight", "Reach"] },
+      extraDays: { type: Number, default: 0 },             // days the boost added to this job's time
+      extensionApplied: { type: Boolean, default: false }, // false while the job still waits for approval
+      boostedAt: Date,
+      paidAmount: { type: Number, default: 0 },
+    },
+    isBoosted: { type: Boolean, default: false, index: true },
+    // Lower = first. listingRank: Premium, Reach, Spotlight, Standard, Basic.
+    // approvalRank: Reach, Spotlight, Premium, Standard, Basic. Set in the pre-save hook below.
+    listingRank: { type: Number, default: 4 },
+    approvalRank: { type: Number, default: 4 },
   },
   { timestamps: true }
 );
 
 jobSchema.index({ status: 1, expiryDate: 1 });
 jobSchema.index({ jobType: 1, status: 1, expiryDate: 1 }); // ads query
+jobSchema.index({ status: 1, listingRank: 1, createdAt: -1 }); // public listing order
+jobSchema.index({ status: 1, approvalRank: 1, submittedAt: 1 }); // approval queue order
 
 jobSchema.virtual("viewCount").get(function () {
   return this.uniqueViewers?.length || 0;
@@ -113,6 +135,15 @@ jobSchema.methods.getRemainingTime = function () {
     seconds: Math.floor((diff % 6e4) / 1e3),
   };
 };
+
+// Keeps the ranks in step with the plan and boost whenever a job is created or edited.
+// (Boost payments use updateOne, which skips this hook, so they set the ranks themselves.)
+jobSchema.pre("save", function () {
+  const { listingRank, approvalRank } = rankFields(this.jobType, this.boost?.plan);
+  this.listingRank = listingRank;
+  this.approvalRank = approvalRank;
+  this.isBoosted = Boolean(this.boost?.plan);
+});
 
 // REMOVED: the pre-save hook that set expiryDate. Expiry is now set explicitly in
 // approveJob and confirmPayment (renewals) using the durations in config/plans.js.

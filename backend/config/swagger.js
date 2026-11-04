@@ -41,7 +41,7 @@ const options = {
     },
   },
   // Paths are relative to where you run `node` (usually the backend root)
-  apis: ["./controllers/*.js"],
+  apis: ["./controllers/*.js", "./routes/*.js"],
 };
 
 export default swaggerJsdoc(options);

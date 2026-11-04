@@ -22,6 +22,9 @@ import { startAttendanceWatcher } from "./utils/attendanceWatcher.js";
 import searchRoutes from "./routes/search.routes.js"
 import statsRoutes from "./routes/stats.routes.js"
 import analyticsRoutes from "./routes/analytics.routes.js"
+import blacklistRoutes from "./routes/blacklist.routes.js";
+import engagementRoutes from "./routes/engagement.routes.js";
+import employerRoutes from "./routes/employer.routes.js";
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -62,6 +65,10 @@ app.use("/api/ads", adsRoutes)
 app.use("/api/search", searchRoutes)
 app.use("/api/stats", statsRoutes)
 app.use("/api/analytics", analyticsRoutes)
+app.use("/api/employers", employerRoutes);
+app.use("/api/blacklist", blacklistRoutes);
+app.use("/api/engagement", engagementRoutes);
+
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',
@@ -138,7 +145,16 @@ server.listen(port, async () => {
 
 
 
+/*
+  In your server file:
+    import engagementRoutes from "./routes/engagementRoutes.js";
+    app.use("/api/engage", engagementRoutes);   // same prefix style as your /api/jobs routes
 
+  In your Paystack webhook, next to the call to settlePayment, add:
+    import { settleExtraPayment } from "../utils/engagementPayments.js";
+    if (/^EJ[BPA]-/.test(reference)) await settleExtraPayment(reference);
+  (boost = EJB-, physical interview = EJP-, account boost = EJA-; your existing job payments start with "EJ-")
+*/
 
 
 

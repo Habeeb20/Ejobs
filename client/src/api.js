@@ -23,6 +23,16 @@ export const onboardingApi = {
 export const authApi = {
   login: (data) => api.post("/users/login", data),
 };
+
+export const blacklistApi = {
+  stats: () => api.get("/blacklist/stats"),
+  list: (params) => api.get("/blacklist", { params }),
+  eligible: (params, signal) => api.get("/blacklist/eligible", { params, signal }),
+  blacklist: (userId, data) => api.post(`/blacklist/${userId}`, data),
+  lift: (userId, data) => api.post(`/blacklist/${userId}/lift`, data),
+  history: (userId) => api.get(`/blacklist/${userId}/history`),
+};
+
 export const adminApi = {
   login: (data) => api.post("/admin/login", data),
 };
@@ -31,6 +41,11 @@ export const userApi = {
   // Logged-in user's details (including role) from the saved token
   getMe: () => api.get("/users/me"),
   updateProfile: (data) => api.put("/users/profile", data),
+};
+
+export const employersApi = {
+  list: (params) => api.get("/employers", { params }),
+  details: (id) => api.get(`/employers/${id}`),
 };
 
 
@@ -103,7 +118,7 @@ export const adsApi = {
     list: (params) => api.get("/ads/admin/list", { params }),
     approve: (id) => api.post(`/ads/admin/${id}/approve`),
     reject: (id, reason) => api.post(`/ads/admin/${id}/reject`, { reason }),
-    setState: (id, action) => api.patch(`/ads/admin/${id}/state`, { action }),
+    setState: (id, action) => api.put(`/ads/admin/${id}/state`, { action }),
   },
 };
 
