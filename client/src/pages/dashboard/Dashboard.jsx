@@ -33,6 +33,10 @@ import MyAds from "../ads/Myads";
 import AdsReview from "../ads/AdsReview";
 import { useNavigate } from "react-router-dom";
 import Blacklist from "../admin/Blacklist";
+import JobStats from "../admin/JobStats";
+import ApplicationStats from "../admin/ApplicationStats";
+import UserModeration from "../admin/UserModeration";
+import UserStats from "../admin/UserStats";
 /* ------------------------------------------------------------------
    1. PAGES. The key is the value used in the URL: /dashboard?tab=<key>
 ------------------------------------------------------------------- */
@@ -48,7 +52,8 @@ const page = (title) => () => <Placeholder title={title} />;
 
 const PAGES = {
     overview: Overview, // role-specific tiles and lists
-    users: page("Manage users"),
+    userStats: UserStats, // role-specific tiles and lists
+    users: UserModeration,
     roles: page("Roles & permissions"),
     analytics: page("Analytics"),
     settings: page("Settings"),
@@ -56,6 +61,8 @@ const PAGES = {
     applications: MyApplications, // job seeker: application tracker
     saved: SavedJobs, // job seeker: saved jobs
     resume: CvTab,
+    applicationStats: ApplicationStats,
+    jobStats: JobStats,
     profile: Profile,
     postJob: PostJob, // employer: plan, details, review
     myListings: MyJobs, // employer: jobs, applicants, analytics, renew
@@ -108,8 +115,12 @@ export const MENU_BY_ROLE = {
     superadmin: [
         item("overview", "Overview", LayoutDashboard),
         item("users", "All users", Users),
+        item("userStats", "User stats", Users),
         item("approvals", "Job approvals", ClipboardList),
         item("adsReview", "Ads", Megaphone),
+        item("jobStats", "Jobs Stats", Megaphone),
+        item("applicationStats", "Application Stats", Megaphone),
+
         BENEFITS_SUPERADMIN,
         item("roles", "Roles & permissions", ShieldCheck),
         item("analytics", "Analytics", BarChart3),

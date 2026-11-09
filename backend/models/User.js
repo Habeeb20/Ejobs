@@ -82,6 +82,12 @@ welcomeBonusGiven: { type: Boolean, default: false },
   referralRewarded: { type: Boolean, default: false }, // stops double rewards
   referralCount: { type: Number, default: 0 },
 
+    verifiedAt: { type: Date, default: null },
+    verifiedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    blockedAt: { type: Date, default: null },
+    blockedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    blockReason: { type: String, default: "", maxlength: 500 },
+
     // auth / otp
     resetPasswordToken: String,
     resetPaswordExpiresAt: Date, // (typo kept so existing controllers keep working)
@@ -350,3 +356,18 @@ userSchema.set("toObject", { virtuals: true });
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default User;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
