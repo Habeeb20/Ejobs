@@ -272,6 +272,15 @@ export const hrApi = {
 };
 
 
+
+
+export const careerApi = {
+  options: () => api.get("/career/career-options"),
+  get: () => api.get("/career/career-profile"),
+  save: (data) => api.put("/career/career-profile", data),
+};
+
+
 export default api;
 
 

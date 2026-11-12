@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
-
+import { DISABILITY_OPTIONS, JOB_MODES, JOB_DECISIONS, PRIVATE_STAFF_TYPES, values } from "../config/careerOptions.js";
 import crypto from "crypto";
 export const ROLES = {
   JOBSEEKER: "jobseeker",
@@ -131,19 +131,14 @@ welcomeBonusGiven: { type: Boolean, default: false },
     dateOfBirth: { type: String },
   
     race: { type: String },
-    dissability: { type: String },
+ 
     gender: { type: String },
     maritalStatus: { type: String, default: "single" },
     educationLevel: { type: String, default: "none" },
-    jobMode: { type: String },
-jobDecision: {
-  type: [{ type: String,  }],
-  default: ["jobchanger"], // pick the default you actually want
-},
-    jobDecisionSalary: { type: String },
-    job: { type: String },
-    TIN: { type: String },
+  
 
+    TIN: { type: String },
+    job: { type: String },
     liveAlone: { type: String },
     whoDoYouLiveWith: { type: String },
     rentFee: { type: String },
@@ -241,6 +236,31 @@ jobDecision: {
     verification: { type: Schema.Types.ObjectId, ref: "EmployerVerification", default: null },
        yearOfEstablishment: { type: Number },
    companyPhone: { type: String },
+         isBlacklisted: { type: Boolean, default: false, index: true },
+blacklistedAt: { type: Date, default: null },
+blacklistedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
+blacklistReason: { type: String, default: "", maxlength: 1000 },
+blacklistCategory: { type: String, default: "" },
+
+
+
+  // multiple selections allowed (field name kept as in your schema)
+  dissability: { type: [{ type: String, enum: values(DISABILITY_OPTIONS) }], default: [] },
+ 
+  // a user can be professional, artisan, or both
+  jobMode: { type: [{ type: String, enum: values(JOB_MODES) }], default: [] },
+  artisanTrades: { type: [String], default: [] }, // only filled when jobMode includes "artisan"
+ 
+  // one choice, not an array
+  jobDecision: { type: String, enum: [...values(JOB_DECISIONS), ""], default: "" },
+  jobChangeFrom: { type: String, trim: true, maxlength: 80, default: "" },
+  jobChangeTo: { type: String, trim: true, maxlength: 80, default: "" },
+  jobDecisionSalary: { type: String, default: "" }, // digits only, e.g. "250000"
+ 
+  privateStaff: { type: Boolean, default: false },
+  privateStaffType: { type: String, enum: [...values(PRIVATE_STAFF_TYPES), ""], default: "" },
+
+
 
 
 
@@ -299,11 +319,7 @@ jobDecision: {
       },
       approved: { type: Boolean, default: false, index: true },
       lastAttemptAt: Date,
-      isBlacklisted: { type: Boolean, default: false, index: true },
-blacklistedAt: { type: Date, default: null },
-blacklistedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
-blacklistReason: { type: String, default: "", maxlength: 1000 },
-blacklistCategory: { type: String, default: "" },
+
       
     },
   },

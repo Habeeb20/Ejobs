@@ -49,7 +49,7 @@ import IdentityVerification from "../home/IdentityVerification"
 import HrEmployees from "../hr/HrEmployees"
 import HrLeave from "../hr/HrLeave";
 import HrPerformance from "../hr/HrPerformance";
-
+import CareerProfile from "../profile/CareerProfile";
 /* ------------------------------------------------------------------
    1. PAGES. The key is the value used in the URL: /dashboard?tab=<key>
 ------------------------------------------------------------------- */
@@ -85,6 +85,7 @@ const PAGES = {
     verify: IdentityVerification,
     myEmployment: MyEmployment,
     blacklist: Blacklist, // super admin: view and manage blacklisted users
+    careerProfile: CareerProfile,
     allJobs: page("All job listings"),
     candidates: page("Candidates"),
     company: Profile,
@@ -192,6 +193,7 @@ export const MENU_BY_ROLE = {
         item("resume", "My resume", FileText),
         item("profile", "Profile", UserCircle),
         item("verify", "Verify Identity", ShieldCheck),
+        item("careerProfile", "career Profile", ShieldCheck),
     ],
     employer: [
         item("overview", "Overview", LayoutDashboard),

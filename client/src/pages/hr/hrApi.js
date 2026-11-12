@@ -5,7 +5,7 @@ const T = { timeout: 20000 };
 const get = (url, params) => api.get(url, { ...T, params });
 const post = (url, data) => api.post(url, data, T);
 const put = (url, data) => api.put(url, data, T);
-const put = (url, data) => api.put(url, data, T);
+// const put = (url, data) => api.put(url, data, T);
 const del = (url) => api.delete(url, T);
 
 export const hrApi = {

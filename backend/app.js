@@ -28,6 +28,7 @@ import employerRoutes from "./routes/employer.routes.js";
 import adminPanelRoutes from "./routes/superAdminPanel.routes.js";
 import hrRoutes from "./routes/hr.routes.js";
 import verificationRoutes from "./routes/verifyNg.route.js";
+import careerProfileRoutes from "./routes/careerProfile.route.js"
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -74,6 +75,7 @@ app.use("/api/engagement", engagementRoutes);
 app.use("/api/admin", adminPanelRoutes);
 app.use("/api/hr", hrRoutes);
 app.use('/api/identity-verification', verificationRoutes);
+app.use("/api/career", careerProfileRoutes)
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',
