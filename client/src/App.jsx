@@ -15,6 +15,9 @@ import StatisticsPage from "./components/home/StatisticsPage";
 import PublicBlacklist from "./pages/home/PublicBlacklist";
 import EmployerList from "./pages/employer/Employerlist";
 import EmployerDetails from "./pages/employer/EmployersDetails";
+import NotFound from "./pages/home/NotFound";
+import AboutUs from "./pages/home/AboutUs";
+import VerifyCallback from "./hooks/VerifyCallback";
 
 export default function App() {
   return (
@@ -34,6 +37,7 @@ export default function App() {
      <Routes>
 
       <Route path="/" element={<Landingpage />} />
+      <Route path="*" element={<  NotFound />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/signup" element={<Onboarding />} />
     
@@ -48,6 +52,9 @@ export default function App() {
       <Route path="/interview-tips" element={<InterviewTipsHub />} />
   <Route path="/statistics" element={<StatisticsPage />} />
   <Route path="/companies" element={<EmployerList />} />
+  <Route path="/employers" element={<EmployerList />} />
+  <Route path="/aboutus" element={<AboutUs />} />
+    <Route path="/verify/callback" element={<VerifyCallback />} />
 
       <Route path="/agent" element={<Dashboard />} />
       <Route path="/jobseeker" element={<Dashboard />} />

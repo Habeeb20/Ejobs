@@ -26,6 +26,8 @@ import blacklistRoutes from "./routes/blacklist.routes.js";
 import engagementRoutes from "./routes/engagement.routes.js";
 import employerRoutes from "./routes/employer.routes.js";
 import adminPanelRoutes from "./routes/superAdminPanel.routes.js";
+import hrRoutes from "./routes/hr.routes.js";
+import verificationRoutes from "./routes/verifyNg.route.js";
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -70,8 +72,8 @@ app.use("/api/employers", employerRoutes);
 app.use("/api/blacklist", blacklistRoutes);
 app.use("/api/engagement", engagementRoutes);
 app.use("/api/admin", adminPanelRoutes);
-
-
+app.use("/api/hr", hrRoutes);
+app.use('/api/identity-verification', verificationRoutes);
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',

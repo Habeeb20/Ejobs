@@ -2,7 +2,13 @@ import { useRef, useState } from "react";
 import { Camera, ExternalLink, FileText, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { uploadToCloudinary } from "../../../utils/cloudinary";
 
-const isImage = (url = "") => /\.(png|jpe?g|webp|gif|avif)$/i.test(url.split("?")[0]);
+const toUrl = (v) =>
+  typeof v === "string" ? v : v?.secure_url || v?.url || v?.[0] || "";
+
+const isImage = (url) =>
+  typeof url === "string" && /\.(png|jpe?g|webp|gif|avif)$/i.test(url.split("?")[0]);
+
+
 
 // Uploads to Cloudinary, then hands the URL string (or an array of them) to onChange
 export default function FileUpload({
@@ -14,8 +20,12 @@ export default function FileUpload({
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [localError, setLocalError] = useState("");
+  // was: const urls = multiple ? (Array.isArray(value) ? value : []) : value ? [value] : [];
+const urls = (multiple ? (Array.isArray(value) ? value : []) : [value])
+  .map(toUrl)
+  .filter(Boolean);
 
-  const urls = multiple ? (Array.isArray(value) ? value : []) : value ? [value] : [];
+
   const canAdd = multiple ? urls.length < max : true;
   const shownError = localError || error;
 
@@ -32,7 +42,8 @@ export default function FileUpload({
     setProgress(0);
     try {
       const uploaded = [];
-      for (const file of files) uploaded.push(await uploadToCloudinary(file, setProgress));
+      for (const file of files) uploaded.push(toUrl(await uploadToCloudinary(file, setProgress)));
+     
       onChange(multiple ? [...urls, ...uploaded] : uploaded[0]);
     } catch (err) {
       setLocalError(err?.response?.data?.error?.message || err.message || "Upload failed. Please try again.");

@@ -20,7 +20,7 @@ const LINKS = [
   { to: "/", label: "Home" },
   { to: "/jobs", label: "Find Jobs" },
   { to: "/companies", label: "Companies" },
-  { to: "/about", label: "About" },
+  { to: "/aboutus", label: "About" },
   { to: "/contact", label: "Contact" },
   { to: "/blacklist", label: "Blacklist" },
   { to: "/statistics", label: "Statistics" },

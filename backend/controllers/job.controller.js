@@ -1856,6 +1856,7 @@ import { settlePayment } from "../utils/settlePayment.js";
 import { emitToUser, emailUser, esc } from "../utils/notify.js";
 import { applyStatusChange, hasActiveAccountBoost, notifyBoostedSeekers, cleanLine } from "../utils/engagement.js";
 import { optionalAuth, num, salaryExpr, buildJobFilter, withUserFlags } from "../config/others.js";
+import { createEmployeeFromApplication, terminateEmployeeFromApplication } from "../config/hrHire.js";
 /**
  * @swagger
  * tags:
@@ -2793,7 +2794,17 @@ export const updateApplicationStatus = async (req, res) => {
       return fail(res, 403, `This applicant is hidden on your ${plan.name} plan`, { code: "PLAN_LIMIT" });
 
     await applyStatusChange({ app, job, employer, status, reason, message, subject });
-    res.json({ success: true, status: app.status });
+    await applyStatusChange({ app, job, employer, status, reason, message, subject });
+
+let employeeWarning;
+try {
+  if (app.status === "Hired") await createEmployeeFromApplication({ app, job, employerId: req.user._id });
+  if (app.status === "Sacked") await terminateEmployeeFromApplication({ app, employerId: req.user._id, reason });
+} catch (e) {
+  console.error("HR sync failed", e);
+  employeeWarning = "Status updated, but the staff record could not be created. Add them manually in Employees.";
+}
+    res.json({ success: true, status: app.status, ...(employeeWarning && { employeeWarning }) });
   } catch (err) { handle(res, err, "updateApplicationStatus"); }
 };
 
@@ -3726,3 +3737,33 @@ export const followJob = async (req, res) => {
     handle(res, err, "followJob");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

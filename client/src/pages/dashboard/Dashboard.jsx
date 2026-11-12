@@ -8,7 +8,8 @@ import {
     Bookmark, UserCircle, PlusSquare, ClipboardList, Building2, Handshake,
     Wallet, BarChart3, Menu, X, LogOut, Bell, Search, Loader2, Gift, Copy, Check,
     ChevronDown, HeartHandshake, CalendarCheck,
-    Megaphone,
+    Megaphone,    UserCog, Clock, MessageSquare, LayoutGrid, Receipt,
+    CalendarDays, 
 } from "lucide-react";
 import { userApi, getError } from "../../api"; // adjust the path to your api file
 import Overview from "../features/Overview";
@@ -37,6 +38,18 @@ import JobStats from "../admin/JobStats";
 import ApplicationStats from "../admin/ApplicationStats";
 import UserModeration from "../admin/UserModeration";
 import UserStats from "../admin/UserStats";
+import MyEmployment from "../hr/MyEmployment"
+import HrOverview from "../hr/HrOverview";
+import HrAttendance from "../hr/HrAttendance";
+import HrComms from "../hr/HrComms";
+import PayslipView from "../hr/PayslipView";
+import HrSettings from "../hr/HrSettings";
+import HrPayroll from "../hr/HrPayroll";
+import IdentityVerification from "../home/IdentityVerification"
+import HrEmployees from "../hr/HrEmployees"
+import HrLeave from "../hr/HrLeave";
+import HrPerformance from "../hr/HrPerformance";
+
 /* ------------------------------------------------------------------
    1. PAGES. The key is the value used in the URL: /dashboard?tab=<key>
 ------------------------------------------------------------------- */
@@ -69,6 +82,8 @@ const PAGES = {
     approvals: JobApprovals, // super admin: approve or reject jobs
     myAds: MyAds, // job seeker, employer, agent: pay to be featured
     adsReview: AdsReview,
+    verify: IdentityVerification,
+    myEmployment: MyEmployment,
     blacklist: Blacklist, // super admin: view and manage blacklisted users
     allJobs: page("All job listings"),
     candidates: page("Candidates"),
@@ -77,6 +92,16 @@ const PAGES = {
     placements: page("Placements"),
     commissions: page("Commissions"),
 
+      hrOverview: HrOverview,       // or page("HR overview")
+    hrAttendance: HrAttendance,   // or page("HR attendance")
+    hrComms: HrComms,             // or page("HR comms")
+    payslip: PayslipView,           // or page("Payslip view")
+    hrSettings: HrSettings,
+hrPayroll: HrPayroll, // or page("HR payroll")
+hrEmployees: HrEmployees, // or page("HR employees")
+hrLeave: HrLeave, // or page("HR leave")
+hrPerformance: HrPerformance,
+   
     // benefits
     benefits: BenefitDashboard, // job seeker: my benefits + stats
     benefitRequest: RequestBenefit, // job seeker: request form
@@ -111,6 +136,26 @@ const BENEFITS_STAFF = group("benefitsGroup", "Benefits", HeartHandshake, [
     item("benefitAttendance", "Venue attendance", CalendarCheck),
 ]);
 
+// const HR_EMPLOYER = group("hrGroup", "HR management", UserCog, [
+//     item("hrOverview", "HR overview", LayoutGrid, { title: "HR overview" }),
+//     item("hrAttendance", "HR attendance", Clock, { title: "HR attendance" }),
+//     item("hrComms", "HR comms", MessageSquare, { title: "HR communications" }),
+//     item("payslip", "Payslip", Receipt, { title: "Payslips" }),
+// ]);
+
+
+const HR_EMPLOYER = group("hrGroup", "HR management", UserCog, [
+    item("hrOverview", "HR overview", LayoutGrid, { title: "HR overview" }),
+    item("hrEmployees", "Employees", Users, { also: ["employeeDetail"] }),
+    item("hrAttendance", "HR attendance", Clock),
+    item("hrLeave", "Leave", CalendarDays, { title: "Leave management" }),
+    item("hrPayroll", "Payroll", Wallet),
+    item("hrPerformance", "Performance", Users),
+    item("hrComms", "HR comms", MessageSquare, { title: "HR communications" }),
+
+    item("hrSettings", "HR settings", Settings),
+]);
+
 export const MENU_BY_ROLE = {
     superadmin: [
         item("overview", "Overview", LayoutDashboard),
@@ -142,17 +187,22 @@ export const MENU_BY_ROLE = {
         item("applications", "My applications", ClipboardList),
         item("saved", "Saved jobs", Bookmark),
         item("myAds", "My ads", Megaphone),
+        item("myEmployment", "My employment", Briefcase),
         BENEFITS_JOBSEEKER,
         item("resume", "My resume", FileText),
         item("profile", "Profile", UserCircle),
+        item("verify", "Verify Identity", ShieldCheck),
     ],
     employer: [
         item("overview", "Overview", LayoutDashboard),
         item("postJob", "Post a job", PlusSquare),
         item("myListings", "My listings", Briefcase),
         item("candidates", "Candidates", Users),
+            HR_EMPLOYER,
+
           item("myAds", "My ads", Megaphone),
         item("company", "Company profile", Building2),
+        
     ],
     agent: [
         item("overview", "Overview", LayoutDashboard),
@@ -172,6 +222,8 @@ const ROLE_LABEL = {
     employer: "Employer",
     agent: "Agent",
 };
+
+
 
 const matchesTab = (leaf, tab) => leaf.id === tab || leaf.also?.includes(tab);
 
