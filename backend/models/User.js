@@ -91,9 +91,11 @@ welcomeBonusGiven: { type: Boolean, default: false },
     // auth / otp
     resetPasswordToken: String,
     resetPaswordExpiresAt: Date, // (typo kept so existing controllers keep working)
+     passwordChangedAt: Date, 
     emailOtp: String,
     otpExpiresAt: Date,
     pendingToken: String,
+     
 
     // relations that exist on both sides
     // seeker -> employers they work for | employer -> seekers they employ

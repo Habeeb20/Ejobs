@@ -44,6 +44,17 @@ export default function EmployerDetails() {
           <p className="text-sm text-slate-500">{e.employerType}{e.size ? ` · ${e.size} staff` : ""}{e.yearOfEstablishment ? ` · est. ${e.yearOfEstablishment}` : ""}</p>
           <p className="text-sm text-slate-500">Joined {date(e.createdAt)} · last login {timeAgo(e.lastLogin)}</p>
         </div>
+        <a
+  href="https://api.showapp.ng/api/showa/chat/-54"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#0A66C2] to-[#2C7BE5] text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+>
+  <span className="w-6 h-6 bg-white text-[#0A66C2] rounded-full flex items-center justify-center font-bold text-base">
+    ⚡
+  </span>
+  Chat on Showa
+</a>
       </div>
 
       {/* headline numbers */}

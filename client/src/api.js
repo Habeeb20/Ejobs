@@ -281,6 +281,45 @@ export const careerApi = {
 };
 
 
+
+
+
+
+// Add this to your api.js (same file as hrApi). `api` is your existing axios instance.
+const R = "/recruitment";
+
+export const recruitmentApi = {
+  // employer
+  plans: () => api.get(`${R}/plans`),
+  quote: (data) => api.post(`${R}/quote`, data),
+  create: (data) => api.post(`${R}/requests`, data),
+  list: () => api.get(`${R}/requests`),
+  get: (id) => api.get(`${R}/requests/${id}`),
+  feedback: (id, cid, data) => api.post(`${R}/requests/${id}/candidates/${cid}/feedback`, data),
+  requestChange: (id, data) => api.post(`${R}/requests/${id}/changes`, data),
+  approveChange: (id) => api.post(`${R}/changes/${id}/approve`),
+  declineChange: (id) => api.post(`${R}/changes/${id}/decline`),
+  requestReplacement: (id, data) => api.post(`${R}/requests/${id}/replacements`, data),
+  paymentProof: (id, data) => api.put(`${R}/payments/${id}/proof`, data),
+
+  // recruitment team (admin, superadmin)
+  admin: {
+    list: (params) => api.get(`${R}/admin/requests`, { params }),
+    get: (id) => api.get(`${R}/admin/requests/${id}`),
+    setStatus: (id, data) => api.post(`${R}/admin/requests/${id}/status`, data),
+    confirmPayment: (id, data) => api.post(`${R}/admin/payments/${id}/confirm`, data),
+    searchCandidates: (q) => api.get(`${R}/admin/candidates`, { params: { q } }),
+    addCandidate: (id, data) => api.post(`${R}/admin/requests/${id}/candidates`, data),
+    updateCandidate: (id, cid, data) => api.patch(`${R}/admin/requests/${id}/candidates/${cid}`, data),
+    addDocument: (id, data) => api.post(`${R}/admin/requests/${id}/documents`, data),
+    decideReplacement: (id, data) => api.post(`${R}/admin/replacements/${id}/decide`, data),
+    completeChange: (id, data) => api.post(`${R}/admin/changes/${id}/complete`, data),
+    plans: () => api.get(`${R}/admin/plans`),
+    updatePlan: (key, data) => api.put(`${R}/admin/plans/${key}`, data),
+  },
+};
+
+
 export default api;
 
 

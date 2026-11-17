@@ -18,6 +18,13 @@ import EmployerDetails from "./pages/employer/EmployersDetails";
 import NotFound from "./pages/home/NotFound";
 import AboutUs from "./pages/home/AboutUs";
 import VerifyCallback from "./hooks/VerifyCallback";
+import InterviewRoom from "./pages/interview/InterviewRoom"; // adjust to your path
+import RecruitmentDetailPage from "./pages/recruitment/RecruitmentDetailsPage";
+import MyRecruitmentsPage from "./pages/recruitment/MyRecruitment";
+import RecruitmentOrderPage from "./pages/recruitment/RecruitmentOrderPage";
+import RecruitmentPlansPage from "./pages/recruitment/RecruitmentPlans";
+import AdminRecruitmentPage from "./pages/admin/AdminRecruitment";
+import AdminRecruitmentDetailsPage from "./pages/admin/AdminRecruitmentDetailsPage"
 
 export default function App() {
   return (
@@ -60,8 +67,13 @@ export default function App() {
       <Route path="/jobseeker" element={<Dashboard />} />
       <Route path="/employer" element={<Dashboard />} />
       <Route path="/blacklist" element={<PublicBlacklist />} />
-
+        <Route path="/employer/recruitment" element={<RecruitmentPlansPage/>}/>
+        <Route path="/employer/recruitment/requests" element={<MyRecruitmentsPage/>}/>
+        <Route path="/employer/recruitment/requests/:id" element={<RecruitmentDetailPage/>}/>
+        <Route path="/employer/recruitment/new/:plan" element={<RecruitmentOrderPage />}/>
+        <Route path="/admin/recruitment/:id" element={<AdminRecruitmentDetailsPage />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/interview/:id" element={<InterviewRoom />} />   
 
 
       

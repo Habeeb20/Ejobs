@@ -29,6 +29,8 @@ import adminPanelRoutes from "./routes/superAdminPanel.routes.js";
 import hrRoutes from "./routes/hr.routes.js";
 import verificationRoutes from "./routes/verifyNg.route.js";
 import careerProfileRoutes from "./routes/careerProfile.route.js"
+import recruitmentRoutes from "./routes/recruitement.routes.js"
+import interviewRoutes from "./routes/interview.routes.js"
 dotenv.config();
 connectDB()
 startAttendanceWatcher();
@@ -58,7 +60,7 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.send("ejobs backend is listening on port....");
 });
-
+app.use("/api/interviews", interviewRoutes);  
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/admin", adminRoutes)
 app.use("/api/users", userRouter)
@@ -76,6 +78,8 @@ app.use("/api/admin", adminPanelRoutes);
 app.use("/api/hr", hrRoutes);
 app.use('/api/identity-verification', verificationRoutes);
 app.use("/api/career", careerProfileRoutes)
+app.use('/api/recruitment', recruitmentRoutes)                      // existing, keep as is
+ 
 // await User.create({
 //   firstName: 'Ejob',
 //   lastName: 'Admin',

@@ -28,6 +28,8 @@ import JobChanger from '../../components/home/JobChanger'
 import { HowItWorks } from '../../components/home/HowItWorks'
 import QuestionAnswer from '../../components/home/Q&A'
 import EJobFamilyBanner from '../../components/home/Ejobfamily'
+import FeaturedProviders from './FeaturedProviders'
+import FeaturedDrivers from './FeaturedDrivers'
 
 const Landingpage = () => {
   return (
@@ -45,7 +47,10 @@ const Landingpage = () => {
       <JobGrid />
       <InterviewTipsHub/>
       <RegisterBanner />
+      <FeaturedProviders/>
+    
       <IndustryGrid/>
+        <FeaturedDrivers />
       <JobChanger />
       <HowItWorks />
       <EJobFamilyBanner />

@@ -50,6 +50,9 @@ import HrEmployees from "../hr/HrEmployees"
 import HrLeave from "../hr/HrLeave";
 import HrPerformance from "../hr/HrPerformance";
 import CareerProfile from "../profile/CareerProfile";
+import AdminRecruitment from "../admin/AdminRecruitment";
+import RecruitmentPlans from "../recruitment/RecruitmentPlans";
+import MyRecruitments from "../recruitment/MyRecruitment";
 /* ------------------------------------------------------------------
    1. PAGES. The key is the value used in the URL: /dashboard?tab=<key>
 ------------------------------------------------------------------- */
@@ -84,6 +87,10 @@ const PAGES = {
     adsReview: AdsReview,
     verify: IdentityVerification,
     myEmployment: MyEmployment,
+    outsourcingAdmin: AdminRecruitment,
+    recruitmentPlans: RecruitmentPlans,
+    
+    recruitment: MyRecruitments,
     blacklist: Blacklist, // super admin: view and manage blacklisted users
     careerProfile: CareerProfile,
     allJobs: page("All job listings"),
@@ -165,6 +172,7 @@ export const MENU_BY_ROLE = {
         item("approvals", "Job approvals", ClipboardList),
         item("adsReview", "Ads", Megaphone),
         item("jobStats", "Jobs Stats", Megaphone),
+        item("outsourcingAdmin", "OutSourcing", Megaphone),
         item("applicationStats", "Application Stats", Megaphone),
 
         BENEFITS_SUPERADMIN,
@@ -200,6 +208,8 @@ export const MENU_BY_ROLE = {
         item("postJob", "Post a job", PlusSquare),
         item("myListings", "My listings", Briefcase),
         item("candidates", "Candidates", Users),
+        item("recruitmentPlans", "Outsourcing", Users),
+        item("recruitment", "My Outsourcing", Users),
             HR_EMPLOYER,
 
           item("myAds", "My ads", Megaphone),

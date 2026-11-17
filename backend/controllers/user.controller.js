@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User, { ROLES } from "../models/User.js";
+import {  resetPasswordEmailHtml, passwordChangedEmailHtml } from "../utils/mailer.js";
 import { sendEmail, otpEmailHtml } from "../utils/sendEmail.js";
 import {blacklistedResponse} from "../utils/blacklist.js"
 const SIGNUP_ROLES = [ROLES.JOBSEEKER, ROLES.EMPLOYER, ROLES.AGENT];
@@ -18,6 +19,21 @@ const WELCOME_BONUS_POINTS = 10; // change to whatever you like
 
 
 const REFERRAL_REWARD_POINTS = 20;
+
+
+const TTL_MIN = Number(process.env.RESET_TOKEN_MINUTES || 15);   // how long a reset link works
+const COOLDOWN_MS = 60 * 1000;                                    // at most one email per minute per account
+const CLIENT_URL = (process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
+
+const GENERIC = `If an account with that email exists, we have sent a password reset link. It expires in ${TTL_MIN} minutes.`;
+const BAD_LINK = "This reset link is invalid or has expired. Please request a new one.";
+const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// The token in the email is random. Only its SHA-256 hash is stored, so a database leak cannot be used to reset accounts.
+const sha256 = (v) => crypto.createHash("sha256").update(v).digest("hex");
+const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const nameOf = (u) => u.firstName || u.companyName || "there";
+
 
 // Call once the new user's email is verified
 const rewardReferrer = async (user) => {
@@ -672,7 +688,7 @@ export const login = async (req, res) => {
     // Burn the same time as a real check when nothing matched the identifier
     if (!candidates.length) await bcrypt.compare(password, DUMMY_HASH);
 
-    if(user.isBlacklisted) return res.status(403).json(blacklistedResponse(user));
+    if(user?.isBlacklisted) return res.status(403).json(blacklistedResponse(user));
 
     if (!user) return fail(res, 401, INVALID_LOGIN);
 
@@ -895,6 +911,223 @@ export const getMe = async (req, res) => {
     fail(res, 500, "Could not load your account. Please try again.");
   }
 };
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: Password reset
+ *   description: Forgot password. A link is emailed and works once.
+ *
+ * /api/users/forgot-password:
+ *   post:
+ *     summary: Email a password reset link
+ *     description: |
+ *       Always answers with the same message for a valid-looking email, whether or not an account exists,
+ *       so nobody can find out who has an account. The link expires after RESET_TOKEN_MINUTES (default 15).
+ *       At most one email per minute is sent per account. Limited to 5 requests per 15 minutes per IP.
+ *     tags: [Password reset]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email: { type: string, format: email, example: chika@example.com }
+ *     responses:
+ *       200:
+ *         description: Request accepted (an email is sent only if the account exists)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 message: { type: string }
+ *       422: { description: Not a valid email address }
+ *       429: { description: Too many attempts }
+ *
+ * /api/users/reset-password/check:
+ *   post:
+ *     summary: Check that a reset link is still valid
+ *     description: Used by the reset page before it shows the form. The token goes in the body so it never appears in server logs.
+ *     tags: [Password reset]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token]
+ *             properties:
+ *               token: { type: string, description: The token from the email link }
+ *     responses:
+ *       200:
+ *         description: The link is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean, example: true }
+ *                 valid: { type: boolean, example: true }
+ *                 email: { type: string, example: "c*****@example.com", description: Masked email of the account }
+ *       400: { description: Invalid or expired link }
+ *       429: { description: Too many attempts }
+ *
+ * /api/users/reset-password:
+ *   post:
+ *     summary: Set a new password with a reset link
+ *     description: |
+ *       The link is destroyed the moment it is used. Password rules: 8 to 72 characters with at least one letter and one number.
+ *       A "password changed" email is sent to the account.
+ *     tags: [Password reset]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, password]
+ *             properties:
+ *               token: { type: string }
+ *               password: { type: string, format: password }
+ *     responses:
+ *       200: { description: Password changed }
+ *       400: { description: Invalid or expired link }
+ *       422: { description: Password does not meet the rules }
+ *       429: { description: Too many attempts }
+ */
+
+
+
+
+
+
+export const passwordProblem = (pw) => {
+  if (typeof pw !== "string" || pw.length < 8) return "Use at least 8 characters";
+  if (pw.length > 72) return "Use at most 72 characters";
+  if (!/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return "Use at least one letter and one number";
+  return "";
+};
+
+const findByEmail = async (email) =>
+  (await User.findOne({ email })) || (await User.findOne({ email: new RegExp(`^${esc(email)}$`, "i") })); // accounts saved with capitals
+
+const maskEmail = (e = "") => {
+  const [name, domain] = e.split("@");
+  return domain ? `${name.slice(0, 1)}${"*".repeat(Math.max(2, Math.min(name.length - 1, 6)))}@${domain}` : "";
+};
+
+/* ---------- 1. ask for a link ---------- */
+export const forgotPassword = async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (email.length > 254 || !EMAIL_RX.test(email)) return res.status(422).json({ success: false, message: "Enter a valid email address" });
+
+    const user = await findByEmail(email);
+    const cooling = user?.resetPaswordExpiresAt && user.resetPaswordExpiresAt.getTime() - Date.now() > TTL_MIN * 60000 - COOLDOWN_MS;
+
+    if (user && !cooling) {
+      const token = crypto.randomBytes(32).toString("hex");
+      // updateOne, not save(): no validation or hooks run on the rest of the account
+      await User.updateOne({ _id: user._id }, { $set: { resetPasswordToken: sha256(token), resetPaswordExpiresAt: new Date(Date.now() + TTL_MIN * 60000) } });
+      const link = `${CLIENT_URL}/reset-password?token=${token}`;
+      // not awaited, so the response time is the same whether or not the account exists
+      sendEmail({ to: user.email, subject: "Reset your EJob password", html: resetPasswordEmailHtml(nameOf(user), link, TTL_MIN) })
+        .catch((err) => console.error("[forgotPassword] email failed:", err.message));
+    }
+    // identical answer for every valid-looking email, so nobody can find out who has an account
+    return res.json({ success: true, message: GENERIC });
+  } catch (err) {
+    console.error("[forgotPassword]", err);
+    return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+};
+
+/* ---------- 2. check the link before showing the form ---------- */
+export const checkResetToken = async (req, res) => {
+  try {
+    const token = String(req.body?.token || "");
+    if (!/^[a-f0-9]{64}$/.test(token)) return res.status(400).json({ success: false, valid: false, message: BAD_LINK });
+    const user = await User.findOne({ resetPasswordToken: sha256(token), resetPaswordExpiresAt: { $gt: new Date() } }).select("email");
+    if (!user) return res.status(400).json({ success: false, valid: false, message: BAD_LINK });
+    return res.json({ success: true, valid: true, email: maskEmail(user.email) });
+  } catch (err) {
+    console.error("[checkResetToken]", err);
+    return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+};
+
+/* ---------- 3. set the new password ---------- */
+export const resetPassword = async (req, res) => {
+  try {
+    const token = String(req.body?.token || "");
+    const password = req.body?.password;
+    if (!/^[a-f0-9]{64}$/.test(token)) return res.status(400).json({ success: false, message: BAD_LINK });
+    const problem = passwordProblem(password);
+    if (problem) return res.status(422).json({ success: false, message: problem, errors: { password: problem } });
+
+    const hash = sha256(token);
+    const live = { resetPasswordToken: hash, resetPaswordExpiresAt: { $gt: new Date() } };
+    if (!(await User.exists(live))) return res.status(400).json({ success: false, message: BAD_LINK }); // cheap check before the slow bcrypt step
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    // one atomic step: only the first request that uses the link succeeds, and the link is destroyed in the same step
+    const user = await User.findOneAndUpdate(
+      live,
+      { $set: { password: passwordHash, passwordChangedAt: new Date() }, $unset: { resetPasswordToken: "", resetPaswordExpiresAt: "" } },
+      { new: true }
+    ).select("email firstName companyName");
+    if (!user) return res.status(400).json({ success: false, message: BAD_LINK });
+
+    sendEmail({ to: user.email, subject: "Your EJob password was changed", html: passwordChangedEmailHtml(nameOf(user)) })
+      .catch((err) => console.error("[resetPassword] email failed:", err.message));
+    return res.json({ success: true, message: "Your password has been changed. You can now log in." });
+  } catch (err) {
+    console.error("[resetPassword]", err);
+    return res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
