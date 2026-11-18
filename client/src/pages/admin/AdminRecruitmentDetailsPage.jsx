@@ -1,6 +1,6 @@
-// src/pages/admin/AdminRecruitmentDetailPage.jsx   route: /admin/recruitment/:id
+// src/pages/admin/AdminRecruitmentDetail.jsx   dashboard tab: outsourcingDetail (?id=...)
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, FileText, Plus, Search, Trash2 } from "lucide-react";
 import recruitmentApi from "../recruitment/recruitmentApi";
 import {
@@ -20,8 +20,9 @@ const toLocalInput = (d) => {
   return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 };
 
-export default function AdminRecruitmentDetailPage() {
-  const { id } = useParams();
+export default function AdminRecruitmentDetail({ go }) {
+  const [sp] = useSearchParams();
+  const id = sp.get("id");
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("pipeline");
   const [error, setError] = useState("");
@@ -52,13 +53,13 @@ export default function AdminRecruitmentDetailPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link to="/admin/recruitment" className="mb-4 inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900"><ArrowLeft className="h-4 w-4" /> Recruitment</Link>
+    <div className="mx-auto w-full max-w-6xl py-2">
+      <button type="button" onClick={() => go("outsourcingAdmin")} className="mb-4 inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" /> Recruitment</button>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">{r.jobTitle}</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{r.jobTitle}</h2>
+          <p className="mt-1 text-sm text-slate-500">
             {r.reference} · {r.planName} · {personName(r.employer)} ({r.employer?.email}{r.employer?.phone && `, ${r.employer.phone}`})
           </p>
         </div>
@@ -82,7 +83,7 @@ export default function AdminRecruitmentDetailPage() {
           ["Hired", `${hired} of ${limits.hireTarget}`],
           ["Replacements used", `${quota.used} of ${quota.allowed}`],
         ].map(([k, v]) => (
-          <div key={k} className="rounded-xl border border-gray-200 bg-white p-4"><p className="text-sm text-gray-500">{k}</p><p className="mt-1 text-xl font-bold text-gray-900">{v}</p></div>
+          <div key={k} className="rounded-xl border border-slate-200 bg-white p-4"><p className="text-sm text-slate-500">{k}</p><p className="mt-1 text-xl font-bold text-slate-900">{v}</p></div>
         ))}
       </div>
 
@@ -92,7 +93,7 @@ export default function AdminRecruitmentDetailPage() {
       {tab === "pipeline" && (
         <div>
           <div className="mb-4 flex items-center justify-between gap-3">
-            <p className="text-sm text-gray-600">Candidates become visible to the client once they are submitted.</p>
+            <p className="text-sm text-slate-600">Candidates become visible to the client once they are submitted.</p>
             {["Active", "Completed"].includes(r.status) && <button className={btnPrimary} onClick={() => setAdding(true)}><Plus className="h-4 w-4" /> Add candidate</button>}
           </div>
           {r.candidates.length === 0 ? <Empty title="No candidates yet" text="Search jobseekers on the platform and add the ones that match this brief." /> : (
@@ -100,11 +101,11 @@ export default function AdminRecruitmentDetailPage() {
               {r.candidates.map((c) => {
                 const done = c.checks.filter((k) => ["Passed", "NotApplicable"].includes(k.status)).length;
                 return (
-                  <li key={c._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4">
+                  <li key={c._id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
                     <div className="min-w-0">
-                      <p className="font-semibold text-gray-900">{c.name} {c.replacementFor && <Badge tone="blue">Replacement</Badge>}</p>
-                      <p className="text-sm text-gray-500">{[c.headline, c.email, c.phone].filter(Boolean).join(" · ")}</p>
-                      <p className="mt-1 text-sm text-gray-600">Checks {done}/{c.checks.length}{c.interview?.scheduledAt && ` · interview ${fmtDateTime(c.interview.scheduledAt)}`}{c.interviewRequestedAt && !c.interview?.scheduledAt && " · client asked to interview"}</p>
+                      <p className="font-semibold text-slate-900">{c.name} {c.replacementFor && <Badge tone="blue">Replacement</Badge>}</p>
+                      <p className="text-sm text-slate-500">{[c.headline, c.email, c.phone].filter(Boolean).join(" · ")}</p>
+                      <p className="mt-1 text-sm text-slate-600">Checks {done}/{c.checks.length}{c.interview?.scheduledAt && ` · interview ${fmtDateTime(c.interview.scheduledAt)}`}{c.interviewRequestedAt && !c.interview?.scheduledAt && " · client asked to interview"}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge status={c.stage} />
@@ -124,28 +125,28 @@ export default function AdminRecruitmentDetailPage() {
       {/* ---------------- payments & changes ---------------- */}
       {tab === "payments" && (
         <div className="space-y-6">
-          <Panel title="Payments" action={<Link to="/admin/recruitment" className="text-sm font-medium text-orange-700 hover:underline">Confirm in the payments queue</Link>}>
-            <ul className="divide-y divide-gray-100 text-sm">
+          <Panel title="Payments" action={<button type="button" onClick={() => go("outsourcingAdmin")} className="text-sm font-medium text-[#B83A06] hover:underline">Open the payments queue</button>}>
+            <ul className="divide-y divide-slate-100 text-sm">
               {payments.map((p) => (
                 <li key={p._id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <div><p className="font-medium text-gray-900">{humanize(p.kind)} · {money(p.amount, p.currency)}</p><p className="text-gray-500">{p.submittedAt ? `Reference ${p.reference}, submitted ${fmtDateTime(p.submittedAt)}` : "No transfer details yet"}{p.paidAt && ` · paid ${fmtDate(p.paidAt)}`}</p></div>
-                  <Badge status={p.status} />
+                  <div><p className="font-medium text-slate-900">{humanize(p.kind)} · {money(p.amount, p.currency)}</p><p className="text-slate-500">{p.method === "paystack" && p.status === "Paid" ? `Paid online with Paystack, ref ${p.gateway?.reference}, verified ${fmtDateTime(p.gateway?.verifiedAt)}` : p.submittedAt ? `Reference ${p.reference}, submitted ${fmtDateTime(p.submittedAt)}` : p.gateway?.reference && p.status === "Pending" ? "Online payment started, not completed" : "No transfer details yet"}{p.paidAt && p.method !== "paystack" && ` · paid ${fmtDate(p.paidAt)}`}</p></div>
+                  {p.method === "paystack" && p.status === "Paid" ? <Badge tone="green">Verified by Paystack</Badge> : <Badge status={p.status} />}
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-sm text-gray-600">Total {money(r.fees.total, r.fees.currency)} · confirmed {money(r.fees.paid, r.fees.currency)}</p>
+            <p className="mt-3 text-sm text-slate-600">Total {money(r.fees.total, r.fees.currency)} · confirmed {money(r.fees.paid, r.fees.currency)}</p>
           </Panel>
           <Panel title="Change requests">
-            {changes.length === 0 ? <p className="text-sm text-gray-500">None.</p> : (
-              <ul className="divide-y divide-gray-100 text-sm">
-                {changes.map((c) => <li key={c._id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div><p className="font-medium text-gray-900">{humanize(c.type)} · {money(c.fee)}</p><p className="text-gray-600">{c.description}</p></div><Badge status={c.status} /></li>)}
+            {changes.length === 0 ? <p className="text-sm text-slate-500">None.</p> : (
+              <ul className="divide-y divide-slate-100 text-sm">
+                {changes.map((c) => <li key={c._id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div><p className="font-medium text-slate-900">{humanize(c.type)} · {money(c.fee)}</p><p className="text-slate-600">{c.description}</p></div><Badge status={c.status} /></li>)}
               </ul>
             )}
           </Panel>
           <Panel title="Replacement requests">
-            {replacements.length === 0 ? <p className="text-sm text-gray-500">None.</p> : (
-              <ul className="divide-y divide-gray-100 text-sm">
-                {replacements.map((x) => <li key={x._id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div><p className="font-medium text-gray-900">{x.candidateName}</p><p className="text-gray-600">{x.reasonLabel}</p></div><Badge status={x.status} /></li>)}
+            {replacements.length === 0 ? <p className="text-sm text-slate-500">None.</p> : (
+              <ul className="divide-y divide-slate-100 text-sm">
+                {replacements.map((x) => <li key={x._id} className="flex flex-wrap items-start justify-between gap-3 py-3"><div><p className="font-medium text-slate-900">{x.candidateName}</p><p className="text-slate-600">{x.reasonLabel}</p></div><Badge status={x.status} /></li>)}
               </ul>
             )}
           </Panel>
@@ -177,7 +178,7 @@ function StatusModal({ request, to, onClose, onDone }) {
     <Modal open title={`Set request to ${humanize(to).toLowerCase()}`} onClose={onClose}
       footer={<><button className={btnGhost} onClick={onClose}>Back</button><button className={to === "Cancelled" ? btnDanger : btnPrimary} disabled={busy || (needsReason && reason.trim().length < 3)} onClick={go}>{busy ? "Saving" : "Confirm"}</button></>}>
       {err && <Notice tone="error">{err}</Notice>}
-      <p className="text-sm text-gray-700">The employer is emailed about this change.</p>
+      <p className="text-sm text-slate-700">The employer is emailed about this change.</p>
       <Field label={needsReason ? "Reason (shown to the employer)" : "Note (optional)"}><textarea className={inputCls} rows={3} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} /></Field>
     </Modal>
   );
@@ -210,22 +211,22 @@ function AddCandidateModal({ request, replacements, onClose, onDone }) {
       {!picked ? (
         <>
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-gray-400" aria-hidden />
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" aria-hidden />
             <input className={`${inputCls} pl-9`} placeholder="Search jobseekers by name, email or phone" value={q} onChange={(e) => setQ(e.target.value)} autoFocus aria-label="Search jobseekers" />
           </div>
-          <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-100">
             {results.map((u) => (
-              <li key={u._id}><button className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm hover:bg-gray-50" onClick={() => setPicked(u)}>
-                <span><span className="block font-medium text-gray-900">{personName(u)}</span><span className="text-gray-500">{[u.email, u.phone, u.state].filter(Boolean).join(" · ")}</span></span>
-                <span className="text-orange-700">Select</span>
+              <li key={u._id}><button className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm hover:bg-slate-50" onClick={() => setPicked(u)}>
+                <span><span className="block font-medium text-slate-900">{personName(u)}</span><span className="text-slate-500">{[u.email, u.phone, u.state].filter(Boolean).join(" · ")}</span></span>
+                <span className="text-[#B83A06]">Select</span>
               </button></li>
             ))}
-            {q.trim().length >= 2 && results.length === 0 && <li className="px-3 py-4 text-sm text-gray-500">No jobseekers found.</li>}
+            {q.trim().length >= 2 && results.length === 0 && <li className="px-3 py-4 text-sm text-slate-500">No jobseekers found.</li>}
           </ul>
         </>
       ) : (
         <>
-          <p className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm"><span className="font-medium text-gray-900">{personName(picked)}</span><button className="text-orange-700 underline" onClick={() => setPicked(null)}>Change</button></p>
+          <p className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"><span className="font-medium text-slate-900">{personName(picked)}</span><button className="text-[#B83A06] underline" onClick={() => setPicked(null)}>Change</button></p>
           <Field label="Headline" hint="e.g. Chartered accountant, 8 years in banking"><input className={inputCls} value={form.headline} onChange={set("headline")} maxLength={160} /></Field>
           <Field label="Years of experience"><input className={inputCls} type="number" min="0" value={form.yearsExperience} onChange={set("yearsExperience")} /></Field>
           <Field label="Profile summary (visible to the client once submitted)"><textarea className={inputCls} rows={4} value={form.summary} onChange={set("summary")} maxLength={4000} /></Field>
@@ -298,25 +299,25 @@ function CandidateEditor({ request, cand, onClose, onDone, onRemoved }) {
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-gray-900">Verification checks</h3>
-        <p className="mb-3 text-xs text-gray-500">Every check must be passed or marked not applicable before the candidate can be submitted to the client.</p>
+        <h3 className="mb-2 text-sm font-semibold text-slate-900">Verification checks</h3>
+        <p className="mb-3 text-xs text-slate-500">Every check must be passed or marked not applicable before the candidate can be submitted to the client.</p>
         <div className="space-y-3">
           {f.checks.map((c) => (
-            <div key={c.key} className="grid gap-2 rounded-lg border border-gray-200 p-3 sm:grid-cols-[1fr_150px]">
-              <p className="text-sm font-medium text-gray-900 sm:col-span-2">{c.label}</p>
+            <div key={c.key} className="grid gap-2 rounded-lg border border-slate-200 p-3 sm:grid-cols-[1fr_150px]">
+              <p className="text-sm font-medium text-slate-900 sm:col-span-2">{c.label}</p>
               <select className={inputCls} value={c.status} onChange={(e) => setCheck(c.key, { status: e.target.value })} aria-label={`${c.label} status`}>{CHECK_STATUSES.map((s) => <option key={s} value={s}>{humanize(s)}</option>)}</select>
               <input className={inputCls} placeholder="Note" value={c.note} onChange={(e) => setCheck(c.key, { note: e.target.value })} aria-label={`${c.label} note`} />
               <input className={`${inputCls} sm:col-span-2`} placeholder="Report link (https://...)" value={c.reportUrl} onChange={(e) => setCheck(c.key, { reportUrl: e.target.value })} aria-label={`${c.label} report link`} />
             </div>
           ))}
-          {f.checks.length === 0 && <p className="text-sm text-gray-500">This package has no checks.</p>}
+          {f.checks.length === 0 && <p className="text-sm text-slate-500">This package has no checks.</p>}
         </div>
       </div>
 
       {cand.submittedAt && (
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-gray-900">Interview</h3>
-          {cand.interviewRequestedAt && <p className="mb-2 text-xs text-gray-500">The client asked for an interview on {fmtDate(cand.interviewRequestedAt)}.</p>}
+          <h3 className="mb-2 text-sm font-semibold text-slate-900">Interview</h3>
+          {cand.interviewRequestedAt && <p className="mb-2 text-xs text-slate-500">The client asked for an interview on {fmtDate(cand.interviewRequestedAt)}.</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Date and time"><input type="datetime-local" className={inputCls} value={f.scheduledAt} onChange={(e) => setF({ ...f, scheduledAt: e.target.value })} /></Field>
             <Field label="Mode"><select className={inputCls} value={f.mode} onChange={(e) => setF({ ...f, mode: e.target.value })}>{["Onsite", "Video", "Phone"].map((m) => <option key={m}>{m}</option>)}</select></Field>
@@ -327,7 +328,7 @@ function CandidateEditor({ request, cand, onClose, onDone, onRemoved }) {
       )}
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-gray-900">Stage</h3>
+        <h3 className="mb-2 text-sm font-semibold text-slate-900">Stage</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Move to">
             <select className={inputCls} value={f.stage} onChange={(e) => setF({ ...f, stage: e.target.value })} disabled={stages.length === 1}>
@@ -337,7 +338,7 @@ function CandidateEditor({ request, cand, onClose, onDone, onRemoved }) {
           {needsStart && <Field label="Start date"><input type="date" className={inputCls} value={f.startDate} onChange={(e) => setF({ ...f, startDate: e.target.value })} /></Field>}
           {needsReason && <Field label="Reason" className="sm:col-span-2"><input className={inputCls} value={f.reason} onChange={(e) => setF({ ...f, reason: e.target.value })} maxLength={1000} /></Field>}
         </div>
-        {f.stage === "Submitted" && cand.stage !== "Submitted" && <p className="mt-2 text-xs text-gray-500">Submitting shows this profile to the employer and emails them.</p>}
+        {f.stage === "Submitted" && cand.stage !== "Submitted" && <p className="mt-2 text-xs text-slate-500">Submitting shows this profile to the employer and emails them.</p>}
       </div>
     </Modal>
   );
@@ -361,16 +362,16 @@ function BriefTab({ request: r, onSaved }) {
     <div className="grid gap-6 lg:grid-cols-2">
       <Panel title="Employer's brief">
         <dl className="space-y-3 text-sm">
-          <div><dt className="font-medium text-gray-900">Description</dt><dd className="mt-1 whitespace-pre-line text-gray-700">{r.description}</dd></div>
-          {r.qualifications && <div><dt className="font-medium text-gray-900">Qualifications</dt><dd className="mt-1 whitespace-pre-line text-gray-700">{r.qualifications}</dd></div>}
-          <div><dt className="font-medium text-gray-900">Skills</dt><dd className="text-gray-700">{r.skills?.join(", ") || "None listed"}</dd></div>
-          <div className="grid grid-cols-2 gap-3"><div><dt className="font-medium text-gray-900">Experience</dt><dd className="text-gray-700">{r.experience || "Not specified"}</dd></div><div><dt className="font-medium text-gray-900">Location</dt><dd className="text-gray-700">{r.location || "Not specified"}</dd></div></div>
-          <div className="grid grid-cols-2 gap-3"><div><dt className="font-medium text-gray-900">Type</dt><dd className="text-gray-700">{r.employmentType}</dd></div><div><dt className="font-medium text-gray-900">Annual salary</dt><dd className="text-gray-700">{r.annualSalary ? money(r.annualSalary) : "Not specified"}</dd></div></div>
+          <div><dt className="font-medium text-slate-900">Description</dt><dd className="mt-1 whitespace-pre-line text-slate-700">{r.description}</dd></div>
+          {r.qualifications && <div><dt className="font-medium text-slate-900">Qualifications</dt><dd className="mt-1 whitespace-pre-line text-slate-700">{r.qualifications}</dd></div>}
+          <div><dt className="font-medium text-slate-900">Skills</dt><dd className="text-slate-700">{r.skills?.join(", ") || "None listed"}</dd></div>
+          <div className="grid grid-cols-2 gap-3"><div><dt className="font-medium text-slate-900">Experience</dt><dd className="text-slate-700">{r.experience || "Not specified"}</dd></div><div><dt className="font-medium text-slate-900">Location</dt><dd className="text-slate-700">{r.location || "Not specified"}</dd></div></div>
+          <div className="grid grid-cols-2 gap-3"><div><dt className="font-medium text-slate-900">Type</dt><dd className="text-slate-700">{r.employmentType}</dd></div><div><dt className="font-medium text-slate-900">Annual salary</dt><dd className="text-slate-700">{r.annualSalary ? money(r.annualSalary) : "Not specified"}</dd></div></div>
           {r.hiringEngagement && <Notice>The employer asked us to handle the hiring process.</Notice>}
         </dl>
       </Panel>
       <Panel title="Package limits and dates">
-        <p className="mb-4 text-sm text-gray-600">Raise a limit after an approved change request such as additional positions or sourcing.</p>
+        <p className="mb-4 text-sm text-slate-600">Raise a limit after an approved change request such as additional positions or sourcing.</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Candidates to submit (max)"><input className={inputCls} type="number" min="1" value={f.shortlistMax} onChange={(e) => setF({ ...f, shortlistMax: e.target.value })} /></Field>
           <Field label="Candidates to screen (max)"><input className={inputCls} type="number" min="1" value={f.screenMax} onChange={(e) => setF({ ...f, screenMax: e.target.value })} placeholder="No limit" /></Field>
@@ -400,9 +401,9 @@ function DocumentsTab({ request: r, onChanged }) {
         {r.documents.length === 0 ? <Empty title="No documents shared yet" text="Share screening and verification reports with the employer here." /> : (
           <ul className="space-y-3">
             {r.documents.map((d) => (
-              <li key={d._id} className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white p-4">
-                <a href={d.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 hover:text-orange-700"><FileText className="h-5 w-5 shrink-0 text-orange-600" /><span className="min-w-0"><span className="block truncate font-medium text-gray-900">{d.name}</span><span className="text-xs text-gray-500">{d.type} · {fmtDate(d.createdAt)}</span></span></a>
-                <button aria-label={`Remove ${d.name}`} className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-red-700" onClick={async () => { await api.removeDocument(r._id, d._id); onChanged(); }}><Trash2 className="h-4 w-4" /></button>
+              <li key={d._id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                <a href={d.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-3 hover:text-[#B83A06]"><FileText className="h-5 w-5 shrink-0 text-[#E4510B]" /><span className="min-w-0"><span className="block truncate font-medium text-slate-900">{d.name}</span><span className="text-xs text-slate-500">{d.type} · {fmtDate(d.createdAt)}</span></span></a>
+                <button aria-label={`Remove ${d.name}`} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-red-700" onClick={async () => { await api.removeDocument(r._id, d._id); onChanged(); }}><Trash2 className="h-4 w-4" /></button>
               </li>
             ))}
           </ul>
@@ -436,8 +437,8 @@ function ActivityTab({ request: r, onChanged }) {
         <ol className="space-y-4">
           {r.timeline.map((t, i) => (
             <li key={i} className="flex gap-3 text-sm">
-              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${t.internal ? "bg-gray-400" : "bg-orange-500"}`} aria-hidden />
-              <div><p className="text-gray-800">{t.text}</p><p className="text-xs text-gray-500">{fmtDateTime(t.at)} · {t.actor}{t.actorName && ` (${t.actorName})`}{t.internal && " · internal"}</p></div>
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${t.internal ? "bg-slate-400" : "bg-[#E4510B]"}`} aria-hidden />
+              <div><p className="text-slate-800">{t.text}</p><p className="text-xs text-slate-500">{fmtDateTime(t.at)} · {t.actor}{t.actorName && ` (${t.actorName})`}{t.internal && " · internal"}</p></div>
             </li>
           ))}
         </ol>
@@ -445,7 +446,7 @@ function ActivityTab({ request: r, onChanged }) {
       <Panel title="Add a note">
         {err && <div className="mb-3"><Notice tone="error">{err}</Notice></div>}
         <textarea className={inputCls} rows={4} value={text} onChange={(e) => setText(e.target.value)} maxLength={1000} aria-label="Note" />
-        <label className="mt-3 flex cursor-pointer gap-2 text-sm text-gray-700"><input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-gray-300 text-orange-600" checked={visible} onChange={(e) => setVisible(e.target.checked)} /> Show this update to the employer</label>
+        <label className="mt-3 flex cursor-pointer gap-2 text-sm text-slate-700"><input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#E4510B]" checked={visible} onChange={(e) => setVisible(e.target.checked)} /> Show this update to the employer</label>
         <button className={`${btnPrimary} mt-4 w-full`} disabled={!text.trim()} onClick={add}>Add note</button>
       </Panel>
     </div>

@@ -8,8 +8,9 @@ import {
 } from "../config/recruitmentPlans.js";
 import {
   httpError, wrap, log, getPlans, getPlan, quote, changeFee, moveCandidate, replacementQuota,
-  clientView, summarise, personName,
+  clientView, summarise, personName, settleGatewayPayment,
 } from "../services/recruitmentService.js";
+import { paystackEnabled, newReference, initializeTransaction, verifyTransaction, validSignature } from "../services/paystackService.js";
 
 const str = (v, max) => String(v ?? "").trim().slice(0, max);
 const list = (v, maxItems = 20, maxLen = 40) =>
@@ -43,6 +44,7 @@ export const getCatalog = wrap(async (_req, res) => {
     changeFeePct: CHANGE_REQUEST_FEE_PCT,
     engagementFeePct: HIRING_ENGAGEMENT_FEE_PCT,
     bank: bankDetails(),
+    paystack: { enabled: paystackEnabled() },
   });
 });
 
@@ -165,6 +167,88 @@ export const submitPaymentProof = wrap(async (req, res) => {
   await request.save();
   res.json({ success: true, payment });
 });
+
+/* ---------- online payment (Paystack) ---------- */
+async function findOwnPayment(req, request) {
+  const payment = await RecruitmentPayment.findOne({ _id: req.params.paymentId, request: request._id, employer: req.user._id });
+  if (!payment) throw httpError(404, "Payment not found.");
+  return payment;
+}
+
+/** Step 1: create the Paystack transaction. The amount comes from our database, never from the browser. */
+export const paystackInitialize = wrap(async (req, res) => {
+  if (!paystackEnabled()) throw httpError(503, "Online payment is not available right now. Please pay by bank transfer.");
+  const request = await findOwned(req);
+  if (request.status === "Cancelled") throw httpError(409, "This request was cancelled.");
+  const payment = await findOwnPayment(req, request);
+  if (payment.status !== "Pending") throw httpError(409, "This payment has already been processed.");
+  if (!req.user.email) throw httpError(422, "Add an email address to your account before paying online.");
+
+  const reference = newReference();
+  const data = await initializeTransaction({
+    email: req.user.email,
+    amountNaira: payment.amount,
+    currency: payment.currency || CURRENCY,
+    reference,
+    metadata: {
+      source: "recruitment", paymentId: String(payment._id), requestId: String(request._id), requestReference: request.reference, kind: payment.kind,
+      custom_fields: [{ display_name: "Recruitment request", variable_name: "request_reference", value: request.reference }],
+    },
+  });
+  payment.gateway.provider = "paystack";
+  payment.gateway.reference = data.reference || reference;
+  payment.gateway.accessCode = data.access_code;
+  payment.gateway.verified = false;
+  payment.gateway.initializedAt = new Date();
+  await payment.save();
+  res.json({ success: true, accessCode: data.access_code, reference: payment.gateway.reference });
+});
+
+/** Step 2: after the popup reports success (or when the client taps "Check payment status"), confirm with Paystack. */
+export const paystackVerify = wrap(async (req, res) => {
+  const request = await findOwned(req);
+  const payment = await findOwnPayment(req, request);
+  if (payment.status === "Paid") return res.json({ success: true, status: "paid" });
+  if (!payment.gateway?.reference) throw httpError(409, "No online payment has been started for this invoice.");
+
+  const tx = await verifyTransaction(payment.gateway.reference);
+  if (tx.status === "success") {
+    await settleGatewayPayment(payment, tx);
+    return res.json({ success: true, status: "paid" });
+  }
+  if (["failed", "abandoned", "reversed"].includes(tx.status)) {
+    return res.json({ success: true, status: tx.status, message: tx.gateway_response || "The payment was not completed." });
+  }
+  return res.json({ success: true, status: "pending", message: "We have not received the payment yet. If you have been debited, it will reflect shortly." });
+});
+
+/** Settles a payment from a Paystack `charge.success` event. Call this from your existing webhook if you already have one. */
+export async function settleFromWebhookEvent(evt) {
+  if (evt?.event !== "charge.success") return false;
+  const reference = evt.data?.reference;
+  if (!reference) return false;
+  const payment = await RecruitmentPayment.findOne({ "gateway.reference": reference });
+  if (!payment) return false; // not a recruitment payment
+  try {
+    await settleGatewayPayment(payment, await verifyTransaction(reference));
+  } catch (e) {
+    if (e.status !== 409) console.error("[recruitment] webhook settle failed:", e.message);
+  }
+  return true;
+}
+
+/** Paystack webhook: POST /api/recruitment/paystack/webhook. Set this URL in your Paystack dashboard. */
+export const paystackWebhook = async (req, res) => {
+  const isRaw = Buffer.isBuffer(req.body);
+  const raw = isRaw ? req.body : req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
+  if (!validSignature(raw, req.headers["x-paystack-signature"])) return res.sendStatus(401);
+  res.sendStatus(200); // acknowledge first; Paystack retries if we are slow
+  try {
+    await settleFromWebhookEvent(isRaw ? JSON.parse(raw.toString("utf8")) : req.body);
+  } catch (e) {
+    console.error("[recruitment] webhook error:", e.message);
+  }
+};
 
 /* ---------- candidate decisions ---------- */
 const DECISIONS = {

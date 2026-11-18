@@ -205,48 +205,85 @@ export async function moveCandidate(request, cand, to, { startDate, reason = "",
 }
 
 /* ---------- payments ---------- */
-/** Confirms or declines a payment. A gateway webhook can call this with approve = true. */
-export async function applyPayment(payment, adminId, { approve = true, note = "" } = {}) {
-  if (payment.status !== "Pending") throw httpError(409, "This payment has already been processed.");
-  const request = await RecruitmentRequest.findById(payment.request);
-  if (!request) throw httpError(404, "Request not found.");
+const PAYMENT_LABEL = { upfront: "upfront fee", balance: "balance", change_request: "change request fee" };
+
+/**
+ * Confirms or declines a Pending payment. Used by admins (bank transfer) and by the Paystack flow.
+ * The Pending -> Paid/Failed switch is atomic, so a webhook and a browser verify arriving together can never count a payment twice.
+ * `set` lets callers add fields in the same atomic update (e.g. Paystack details).
+ */
+export async function applyPayment(payment, adminId, { approve = true, note = "", set = {} } = {}) {
   const now = new Date();
-  const label = payment.kind === "change_request" ? "change request fee" : payment.kind === "balance" ? "balance" : "upfront fee";
+  const label = PAYMENT_LABEL[payment.kind] || "payment";
+  const claimed = await RecruitmentPayment.findOneAndUpdate(
+    { _id: payment._id, status: "Pending" },
+    {
+      $set: approve
+        ? { status: "Paid", paidAt: now, confirmedBy: adminId || null, ...(note ? { adminNote: note } : {}), ...set }
+        : { status: "Failed", confirmedBy: adminId || null, adminNote: note },
+    },
+    { new: true },
+  );
+  if (!claimed) throw httpError(409, "This payment has already been processed.");
+
+  if (approve) await RecruitmentRequest.updateOne({ _id: claimed.request }, { $inc: { "fees.paid": claimed.amount } });
+  const request = await RecruitmentRequest.findById(claimed.request);
+  if (!request) throw httpError(404, "Request not found.");
+  const online = claimed.method === "paystack";
 
   if (!approve) {
-    payment.status = "Failed";
-    payment.adminNote = note;
-    payment.confirmedBy = adminId || null;
-    log(request, "admin", "", `Payment of ${payment.amount} (${label}) was declined.${note ? ` ${note}` : ""}`);
-    await Promise.all([payment.save(), request.save()]);
+    log(request, "admin", "", `Payment of ${claimed.amount} (${label}) was declined.${note ? ` ${note}` : ""}`);
+    await request.save();
     notify(request.employer, `Payment not confirmed for ${request.reference}`,
-      `We could not confirm your ${label} payment.${note ? ` ${note}` : ""} Please check the transfer details and submit them again from the Payments tab.`);
-    return payment;
+      `We could not confirm your ${label} payment.${note ? ` ${note}` : ""} Please check the transfer details and submit them again, or pay online from the Payments tab.`);
+    return claimed;
   }
 
-  payment.status = "Paid";
-  payment.paidAt = now;
-  payment.confirmedBy = adminId || null;
-  if (note) payment.adminNote = note;
-  request.fees.paid = (request.fees.paid || 0) + payment.amount;
-
-  if (payment.kind === "upfront" && request.status === "AwaitingPayment") {
+  if (claimed.kind === "upfront" && request.status === "AwaitingPayment") {
     request.status = "Active";
     request.commencedAt = now;
     request.dueDate = addDays(now, request.planSnapshot?.durationDays || 30);
-    log(request, "system", "", "Payment confirmed. Recruitment has started.");
+    log(request, "system", "", `${online ? "Online payment verified by Paystack" : "Payment confirmed"}. Recruitment has started.`);
   } else {
-    log(request, "system", "", `Payment confirmed (${label}).`);
+    log(request, "system", "", `${online ? "Online payment verified by Paystack" : "Payment confirmed"} (${label}).`);
   }
-  if (payment.kind === "change_request" && payment.change) {
-    await RecruitmentChange.findByIdAndUpdate(payment.change, { status: "Paid" });
+  if (claimed.kind === "change_request" && claimed.change) {
+    await RecruitmentChange.findByIdAndUpdate(claimed.change, { status: "Paid" });
   }
-  await Promise.all([payment.save(), request.save()]);
+  await request.save();
   notify(request.employer, `Payment confirmed for ${request.reference}`,
-    payment.kind === "upfront"
-      ? `We have confirmed your payment and started recruiting for ${request.jobTitle}. You will be notified as soon as candidates are ready for your review.`
-      : `We have confirmed your ${label} payment for ${request.jobTitle}.`);
-  return payment;
+    claimed.kind === "upfront"
+      ? `We have received your payment and started recruiting for ${request.jobTitle}. You will be notified as soon as candidates are ready for your review.`
+      : `We have received your ${label} payment for ${request.jobTitle}.`);
+  return claimed;
+}
+
+/**
+ * Settles a Pending payment from a successful Paystack transaction (the object returned by /transaction/verify).
+ * Checks that the transaction really belongs to this payment and that the amount matches what we asked for.
+ * Safe to call more than once for the same payment.
+ */
+export async function settleGatewayPayment(payment, tx) {
+  if (payment.status === "Paid") return payment;
+  if (!tx || tx.status !== "success") throw httpError(409, "Paystack has not received this payment yet.");
+  if (!payment.gateway?.reference || tx.reference !== payment.gateway.reference) throw httpError(422, "This transaction does not match the payment.");
+  const expected = Math.round(payment.amount * 100);
+  if (Number(tx.amount) !== expected || (tx.currency && tx.currency !== (payment.currency || CURRENCY))) {
+    console.error("[recruitment] Paystack amount mismatch", { payment: String(payment._id), expected, got: tx.amount, currency: tx.currency });
+    throw httpError(422, "The amount paid does not match the amount due. Our team has been notified and will help you.");
+  }
+  if (payment.status !== "Pending") throw httpError(409, "This payment can no longer be paid online. Please contact us.");
+  return applyPayment(payment, null, {
+    approve: true,
+    set: {
+      method: "paystack",
+      "gateway.provider": "paystack",
+      "gateway.verified": true,
+      "gateway.verifiedAt": new Date(),
+      "gateway.channel": tx.channel || "",
+      "gateway.gatewayFees": (Number(tx.fees) || 0) / 100,
+    },
+  });
 }
 
 /* ---------- replacements ---------- */

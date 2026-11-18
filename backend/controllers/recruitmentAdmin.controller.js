@@ -23,17 +23,18 @@ async function findRequest(id) {
 
 /* ---------- overview ---------- */
 export const overview = wrap(async (_req, res) => {
-  const [byStatus, pendingPayments, openChanges, openReplacements, revenue] = await Promise.all([
+  const [byStatus, pendingPayments, openChanges, openReplacements, revenue, onlineVerified] = await Promise.all([
     RecruitmentRequest.aggregate([{ $group: { _id: "$status", n: { $sum: 1 } } }]),
     RecruitmentPayment.countDocuments({ status: "Pending", submittedAt: { $ne: null } }),
     RecruitmentChange.countDocuments({ status: "AwaitingApproval" }),
     RecruitmentReplacement.countDocuments({ status: "Pending" }),
     RecruitmentPayment.aggregate([{ $match: { status: "Paid" } }, { $group: { _id: null, total: { $sum: "$amount" } } }]),
+    RecruitmentPayment.countDocuments({ status: "Paid", method: "paystack" }),
   ]);
   res.json({
     success: true,
     byStatus: Object.fromEntries(byStatus.map((s) => [s._id, s.n])),
-    pendingPayments, openChanges, openReplacements,
+    pendingPayments, openChanges, openReplacements, onlineVerified,
     revenue: revenue[0]?.total || 0,
   });
 });

@@ -102,7 +102,7 @@ requestSchema.pre("validate", function () {
 });
 export const RecruitmentRequest = make("RecruitmentRequest", requestSchema);
 
-/* ---------- Payments (bank transfer confirmed by an admin; hook a gateway into applyPayment later) ----------
+/* ---------- Payments (bank transfer confirmed by an admin, or paid online with Paystack and verified automatically) ----------
    A Pending payment is created by the system when money becomes due (order, hire balance, approved change).
    The client then attaches their transfer details (submittedAt) and an admin confirms or declines it. */
 export const RecruitmentPayment = make("RecruitmentPayment", new Schema({
@@ -118,7 +118,18 @@ export const RecruitmentPayment = make("RecruitmentPayment", new Schema({
   note: { type: String, default: "" },          // note from the client
   adminNote: { type: String, default: "" },     // reason shown to the client when a payment is declined
   submittedAt: Date,                            // when the client declared the transfer
-  paidAt: Date, confirmedBy: oid("User", { default: null }),
+  method: { type: String, enum: ["bank_transfer", "paystack"], default: "bank_transfer" }, // how it was finally paid
+  gateway: {                                    // Paystack details, filled when the client pays online
+    provider: { type: String, default: "" },
+    reference: { type: String, default: "", index: true, sparse: true }, // latest transaction reference
+    accessCode: { type: String, default: "", select: false },
+    channel: String,                            // card, bank, ussd, bank_transfer ...
+    verified: { type: Boolean, default: false },// true once Paystack confirmed the amount server-side
+    verifiedAt: Date,
+    gatewayFees: Number,                        // in naira
+    initializedAt: Date,
+  },
+  paidAt: Date, confirmedBy: oid("User", { default: null }), // confirmedBy stays empty for online payments (verified automatically)
 }, { timestamps: true }));
 
 /* ---------- Change / renewal of request (+15%) ---------- */
