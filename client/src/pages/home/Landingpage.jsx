@@ -30,6 +30,7 @@ import QuestionAnswer from '../../components/home/Q&A'
 import EJobFamilyBanner from '../../components/home/Ejobfamily'
 import FeaturedProviders from './FeaturedProviders'
 import FeaturedDrivers from './FeaturedDrivers'
+import VideoGallery from '../../components/home/VideoGallery'
 
 const Landingpage = () => {
   return (
@@ -48,6 +49,7 @@ const Landingpage = () => {
       <InterviewTipsHub/>
       <RegisterBanner />
       <FeaturedProviders/>
+      <VideoGallery />
     
       <IndustryGrid/>
         <FeaturedDrivers />
